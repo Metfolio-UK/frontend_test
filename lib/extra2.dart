@@ -1992,7 +1992,7 @@ class Extraq extends State<Extra2> {
       // print('getGoldPrice');
       // print(res);
     } else {
-      print(res['error']);
+      // print(res['error']);
     }
 
     setState(() {
@@ -2252,7 +2252,6 @@ class Extraq extends State<Extra2> {
       //   // finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
       //   // print(finalBuyPrice);
       // }
-
     }
     print(markupPercentage);
     var feesMarkup =

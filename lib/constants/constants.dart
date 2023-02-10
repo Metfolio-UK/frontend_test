@@ -11,6 +11,7 @@ const tSecondaryColor = Color(0XFF1E365B);
 const tlightBlue = Color(0xff2AB2BC);
 const tgrayColor2 = Color(0xff707070);
 const twhiteColor2 = Color(0xffE8ECF4);
+const ttabBackground = Color(0xffDCDCDC);
 // const tSecondCardBackground = Color(0xFFF3F4F6);
 const tWhite = Color(0XFFffffff);
 const tGray = Color(0XFF757575);

@@ -36,45 +36,43 @@ class Goldcontainer extends StatelessWidget {
             // height: 28,
             child: Image.asset(
               imagess,
-              height: 29,
+              height: 31,
               fit: BoxFit.fill,
             ),
           ),
           SizedBox(
-            height: 28,
+            height: 26,
           ),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  goldGrams ?? "",
-                  style: TextStyle(
-                    color: tBlue,
-                    fontFamily: 'Barlow',
-                    fontSize: isTab(context) ? 13.sp : 24,
-                    fontWeight: FontWeight.w700,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                goldGrams ?? "",
+                style: TextStyle(
+                  color: tBlue,
+                  fontFamily: 'Barlow',
+                  fontSize: isTab(context) ? 13.sp : 24,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(
+                width: 4,
+              ),
+              InkWell(
+                onTap: ontap,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: tSecondaryColor)),
+                  child: Image.asset(
+                    'images/down.png',
+                    height: 8,
                   ),
                 ),
-                SizedBox(
-                  width: 4,
-                ),
-                InkWell(
-                  onTap: ontap,
-                  child: Container(
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: tSecondaryColor)),
-                    child: Image.asset(
-                      'images/down.png',
-                      height: 8,
-                    ),
-                  ),
-                )
-              ],
-            ),
+              )
+            ],
           ),
           Text(
             title ?? "",

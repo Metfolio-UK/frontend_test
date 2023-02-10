@@ -71,6 +71,7 @@ dependencies:
   syncfusion_flutter_charts: ^20.4.44
   appsflyer_sdk: ^6.9.3
   loading_icon_button:
+  sticky_headers: ^0.3.0+2
 
 dev_dependencies:
   flutter_test:

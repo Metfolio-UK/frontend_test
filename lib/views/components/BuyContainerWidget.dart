@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../constants/constants.dart';
+import '../../constants/imageConstant.dart';
 import '../../responsive.dart';
 
 class BuyContainerWidget extends StatelessWidget {
@@ -23,26 +24,38 @@ class BuyContainerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: tContainerColor, borderRadius: BorderRadius.circular(12)),
-      padding: EdgeInsets.only(left: 14, right: 10, top: 5, bottom: 5),
+          border: Border.all(color: tPrimaryColor),
+          borderRadius: BorderRadius.circular(12)),
+      padding: EdgeInsets.symmetric(horizontal: 13, vertical: 6),
       child: Row(
         // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Expanded(
-            flex: 4,
-            child: Text(
-              tittle ?? "",
-              textAlign: TextAlign.start,
-              style: TextStyle(
-                  color: tSecondaryColor,
-                  fontSize: isTab(context) ? 9.sp : 12.sp,
-                  fontWeight: FontWeight.w500),
+            flex: 1,
+            child: Container(
+              alignment: Alignment.centerLeft,
+              child: tittle == 'Buy'
+                  ? Image.asset(
+                      Images.QUICKGOLD,
+                      width: 20.sp,
+                    )
+                  : tittle == 'Sell'
+                      ? Image.asset(
+                          'images/sell.png',
+                          width: 20.sp,
+                        )
+                      : tittle == 'Delivery'
+                          ? Image.asset(
+                              Images.DELIVERY,
+                              width: 20.sp,
+                            )
+                          : Container(),
             ),
           ),
           Expanded(
-            flex: 8,
+            flex: 3,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,6 +64,7 @@ class BuyContainerWidget extends StatelessWidget {
                   goldgrams ?? "",
                   style: TextStyle(
                       color: tSecondaryColor,
+                      fontFamily: 'Barlow',
                       fontSize: isTab(context) ? 9.sp : 12.sp,
                       fontWeight: FontWeight.w400),
                 ),
@@ -65,7 +79,7 @@ class BuyContainerWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 8,
+            flex: 2,
             child:
                 // Text(
                 //         cost ?? "",
@@ -85,7 +99,7 @@ class BuyContainerWidget extends StatelessWidget {
                         style: TextStyle(
                           color: tSecondaryColor,
                           fontSize: isTab(context) ? 9.sp : 12.sp,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.bold,
                         ),
                       )
                     : des != null
@@ -95,7 +109,7 @@ class BuyContainerWidget extends StatelessWidget {
                             style: TextStyle(
                               color: tSecondaryColor,
                               fontSize: isTab(context) ? 9.sp : 12.sp,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.bold,
                             ),
                           )
                         : Container(),

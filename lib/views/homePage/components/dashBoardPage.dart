@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:base_project_flutter/models/myOrders.dart';
+import 'package:flutter/services.dart';
 import 'package:loading_icon_button/loading_icon_button.dart';
 import 'package:base_project_flutter/constants/constants.dart';
 import 'package:base_project_flutter/constants/imageConstant.dart';
 import 'package:base_project_flutter/globalFuctions/globalFunctions.dart';
 import 'package:base_project_flutter/main.dart';
 import 'package:base_project_flutter/views/bottomNavigation.dart/bottomNavigation.dart';
+import 'package:base_project_flutter/models/myOrders.dart' as myOrdersModel;
 
 import 'package:base_project_flutter/views/nameyourgoal/nameyourgoal.dart';
 
@@ -15,16 +18,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_segment/flutter_segment.dart';
 import 'package:intercom_flutter/intercom_flutter.dart';
 import 'package:lottie/lottie.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:provider/provider.dart';
+import '../../../api_services/orderApi.dart';
+import '../../../api_services/stripeApi.dart';
 import '../../../api_services/userApi.dart';
 import '../../../provider/actionProvider.dart';
 import '../../../responsive.dart';
+import '../../activity/activity.dart';
+import '../../components/BuyContainerWidget.dart';
 import '../../components/goldcontainer.dart';
 import '../../components/menuContainerWidget.dart';
 import '../../nameyourgoal/GoalAmount.dart';
+import '../../profilePage/profilePage.dart';
 import '../../veriffPage/veriffPage.dart';
+import 'goals.dart';
 
 // ignore: must_be_immutable
 class DashBoardPage extends StatefulWidget {
@@ -37,17 +47,37 @@ class DashBoardPage extends StatefulWidget {
   State<DashBoardPage> createState() => _DashBoardPageState();
 }
 
-class _DashBoardPageState extends State<DashBoardPage> {
+class _DashBoardPageState extends State<DashBoardPage>
+    with SingleTickerProviderStateMixin {
+  late final _tabController;
+  late ScrollController _scrollController;
+  Future<myOrdersModel.MyOrderDetialsModel>? MyOrderDetials;
+  final goalNameController = TextEditingController();
+  final goalAmountController = TextEditingController();
+  int repeatType = 0;
+  bool goalIsActive = false;
+  bool editGoalName = false;
+  bool editGoalAmount = false;
+  String goalName = "";
+  String goalAmount = "";
+  bool invalidEntryName = false;
+  bool invalidEntryAmount = false;
   @override
   void initState() {
+    checkLoginStatus();
     getGoldPrice();
     getMyGoal();
+    setState(() {
+      MyOrderDetials = UserAPI().getMyOrders(context, '0', '');
+    });
     ActionProvider _data = Provider.of<ActionProvider>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _data.phyGoldAction(1);
       _data.goalGoldAction(1);
     });
-
+    _tabController = TabController(
+        length: 2, vsync: this, animationDuration: Duration(milliseconds: 10));
+    _scrollController = ScrollController();
     // TODO: implement initState
     super.initState();
   }
@@ -55,6 +85,8 @@ class _DashBoardPageState extends State<DashBoardPage> {
   var myGoalDetails;
   var goalTotalValue;
   var avalibleGoalGold;
+  var defPaymentDeatils;
+  var goalId;
   getMyGoal() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var res = await UserAPI().getMyGoals(context);
@@ -69,8 +101,40 @@ class _DashBoardPageState extends State<DashBoardPage> {
       setState(() {
         sharedPreferences.setString("goalName", res['details']['name_of_goal']);
         // myGoalDetails = res;
+        goalId = res['details']['id'].toString();
+
         avalibleGoalGold = res['details']['availableGoldByGoal'];
       });
+      var cusId = sharedPreferences.getString('cusId');
+      print('cusId>>>>>>>>>>>>' + cusId.toString());
+      var defPmId;
+      var cusDetails = await StripePaymentApi()
+          .getCustomerPaymentDetails(context, cusId.toString());
+      print("cusDetails" + cusDetails.toString());
+      if (cusDetails != null) {
+        defPmId = cusDetails['invoice_settings']['default_payment_method'];
+
+        print(defPmId);
+        var result = await StripePaymentApi()
+            .getCustomerCards(context, cusId.toString());
+        print("cardlist>>>>>>>>");
+        print(result);
+        if (result != null) {
+          for (var i = 0; i <= result['data']!.length - 1; i++) {
+            if (result['data'][i]['id'] == defPmId) {
+              if (mounted) {
+                setState(() {
+                  defPaymentDeatils = result['data'][i];
+                });
+              }
+              break;
+            }
+          }
+          print(defPaymentDeatils);
+          // print("defPaymentDeatils>>>>>>" +
+          //     defPaymentDeatils['card']['wallet']['type']);
+        }
+      }
     }
   }
 
@@ -142,6 +206,968 @@ class _DashBoardPageState extends State<DashBoardPage> {
   var btnColor = tTextformfieldColor;
   var selectedvalue;
 
+  late SharedPreferences sharedPreferences;
+  var mobileNo;
+  var email;
+  var firstname;
+  var check;
+  var profileImage;
+  var authCode;
+  var details;
+  var lastName;
+
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    authCode = sharedPreferences.getString('authCode');
+    check = await UserAPI().checkApi(sharedPreferences.getString('authCode')!);
+    print(check);
+    if (check != null && check['status'] == 'OK') {
+      setState(() {
+        details = check['detail'];
+      });
+      sharedPreferences.setString(
+          'contactnumber', check['detail']['contact_no'].toString());
+      sharedPreferences.setString('email', check['detail']['email'].toString());
+
+      sharedPreferences.setString(
+          'username', check['detail']['username'].toString());
+      sharedPreferences.setString(
+          'firstName', check['detail']['first_name'].toString());
+      sharedPreferences.setString('lastName', check['detail']['last_name']);
+      if (check['detail']['profile_image'] != null) {
+        sharedPreferences.setString(
+            "profile_image", check['detail']['profile_image']);
+      }
+    }
+
+    setState(() {
+      mobileNo = sharedPreferences.getString("contactnumber") != null
+          ? sharedPreferences.getString("contactnumber")
+          : ' ';
+      print(mobileNo);
+      email = sharedPreferences.getString('email') != null
+          ? sharedPreferences.getString('email')
+          : ' ';
+      firstname = sharedPreferences.getString('firstName') != null
+          ? sharedPreferences.getString('firstName')
+          : ' ';
+      lastName = sharedPreferences.getString('lastName') != null
+          ? sharedPreferences.getString('lastName')
+          : '';
+      profileImage = sharedPreferences.getString('profile_image') != null
+          ? sharedPreferences.getString('profile_image')
+          : 'https://img.icons8.com/bubbles/50/000000/user.png';
+    });
+  }
+
+  bool loading = false;
+
+  void repeatgoal() {
+    showMaterialModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+      ),
+      context: context,
+      builder: (context) => StatefulBuilder(builder: (context, setStates2) {
+        return Container(
+          height: 90.h,
+          child: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      child: Container(
+                        height: 4,
+                        width: 20.w,
+                        margin: EdgeInsets.only(top: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: tPrimaryColor,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 16,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Repeats on",
+                            style: TextStyle(
+                              fontFamily: 'Barlow',
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            "Done",
+                            style: TextStyle(
+                                fontFamily: 'Barlow',
+                                fontSize: 19,
+                                fontWeight: FontWeight.bold,
+                                color: tlightBlue),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 4,
+                    ),
+                    Divider(
+                      height: 4,
+                      color: tgrayColor2,
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Start Date",
+                            style: TextStyle(
+                                fontFamily: 'Barlow',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "Your first transaction will occur on this date",
+                            style: TextStyle(
+                                fontFamily: 'Barlow',
+                                fontSize: 10,
+                                color: grayColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Today - 23/02/2023",
+                                style: TextStyle(
+                                    fontFamily: 'Barlow',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Container(
+                                height: 25,
+                                width: 25,
+                                decoration: BoxDecoration(
+                                    color: tgreenColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: tSecondaryColor)),
+                                child: Center(
+                                  child: Image.asset(
+                                    "images/tick.png",
+                                    width: 14,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Divider(
+                            height: 4,
+                            color: tGray,
+                          ),
+                          SizedBox(
+                            height: 32,
+                          ),
+                          Text(
+                            "Repeats",
+                            style: TextStyle(
+                                fontFamily: 'Barlow',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "Your subsequent transactions will occur on this schedule",
+                            style: TextStyle(
+                                fontFamily: 'Barlow',
+                                fontSize: 10,
+                                color: grayColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Daily",
+                                style: TextStyle(
+                                    fontFamily: 'Barlow',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setStates2(() {
+                                    repeatType = 0;
+                                  });
+                                },
+                                child: Container(
+                                  height: 25,
+                                  width: 25,
+                                  decoration: BoxDecoration(
+                                      color: repeatType == 0
+                                          ? tgreenColor
+                                          : twhiteColor2,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border:
+                                          Border.all(color: tSecondaryColor)),
+                                  child: Center(
+                                    child: repeatType != 0
+                                        ? null
+                                        : Image.asset(
+                                            "images/tick.png",
+                                            width: 14,
+                                          ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Divider(
+                            height: 4,
+                            color: tlightGray,
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Weekly",
+                                style: TextStyle(
+                                    fontFamily: 'Barlow',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setStates2(() {
+                                    repeatType = 1;
+                                  });
+                                },
+                                child: Container(
+                                  height: 25,
+                                  width: 25,
+                                  decoration: BoxDecoration(
+                                      color: repeatType == 1
+                                          ? tgreenColor
+                                          : twhiteColor2,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border:
+                                          Border.all(color: tSecondaryColor)),
+                                  child: Center(
+                                    child: repeatType != 1
+                                        ? null
+                                        : Image.asset(
+                                            "images/tick.png",
+                                            width: 14,
+                                          ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Divider(
+                            height: 4,
+                            color: tlightGray,
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Monthly",
+                                style: TextStyle(
+                                    fontFamily: 'Barlow',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setStates2(() {
+                                    repeatType = 2;
+                                  });
+                                },
+                                child: Container(
+                                  height: 25,
+                                  width: 25,
+                                  decoration: BoxDecoration(
+                                      color: repeatType == 2
+                                          ? tgreenColor
+                                          : twhiteColor2,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border:
+                                          Border.all(color: tSecondaryColor)),
+                                  child: Center(
+                                    child: repeatType != 2
+                                        ? null
+                                        : Image.asset(
+                                            "images/tick.png",
+                                            width: 14,
+                                          ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  void editgoal() {
+    // getGoalData();
+    print("myGoalDetails--->" + myGoalDetails.toString());
+    goalNameController.text = myGoalDetails['details']['name_of_goal'];
+    goalAmountController.text =
+        myGoalDetails['details']['goal_amount'].toString();
+    goalIsActive =
+        myGoalDetails['details']['current_status'] == 2 ? true : false;
+    print("defPaymentDeatils");
+    print(defPaymentDeatils);
+    setState(() {
+      editGoalName = false;
+      editGoalAmount = false;
+      invalidEntryName = false;
+      invalidEntryAmount = false;
+    });
+    showMaterialModalBottomSheet(
+      // isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+      ),
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (contexts, setStates) {
+          return GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              setStates(() {
+                editGoalName = false;
+                editGoalAmount = false;
+              });
+            },
+            child: Container(
+              height: 75.h,
+              padding: MediaQuery.of(context).viewInsets,
+              child: CustomScrollView(
+                // padding: EdgeInsets.all(0),
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Column(
+                      children: [
+                        Align(
+                          child: Container(
+                            height: 4,
+                            width: 20.w,
+                            margin: EdgeInsets.only(top: 10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: tPrimaryColor,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Edit Goal",
+                                    style: TextStyle(
+                                      fontFamily: 'Barlow',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                          backgroundColor: tredColor,
+                                          radius: 12,
+                                          child: Image.asset(
+                                            "images/bin.png",
+                                            width: 15,
+                                          )),
+                                      SizedBox(
+                                        width: 2,
+                                      ),
+                                      Text(
+                                        "End Goal",
+                                        style: TextStyle(
+                                          fontFamily: 'Barlow',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        color: tYellow,
+                                        size: 16,
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                "Click off the popup to discard\nchanges.",
+                                style: TextStyle(
+                                    fontFamily: 'Barlow',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: grayColor),
+                              ),
+                              SizedBox(
+                                height: 24,
+                              ),
+                              Text(
+                                "Goal Name",
+                                style: TextStyle(
+                                  fontFamily: 'Barlow',
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: invalidEntryName
+                                            ? tredColor
+                                            : tSecondaryColor)),
+                                child: editGoalName
+                                    ? TextFormField(
+                                        autofocus: true,
+                                        textAlign: TextAlign.center,
+                                        controller: goalNameController,
+                                        style: TextStyle(
+                                            fontFamily: 'Barlow',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.all(0),
+                                          enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              width: 0,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : InkWell(
+                                        onTap: () {
+                                          setStates(() {
+                                            if (!editGoalName)
+                                              editGoalName = true;
+                                          });
+                                        },
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                goalNameController.text,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontFamily: 'Barlow',
+                                                    fontSize: 15,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: 8,
+                                            ),
+                                            Icon(
+                                              Icons.edit,
+                                              size: 14,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              Text(
+                                "Goal Status",
+                                style: TextStyle(
+                                  fontFamily: 'Barlow',
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                    border: Border.all(color: tSecondaryColor),
+                                    borderRadius: BorderRadius.circular(24)),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setStates(() {
+                                            if (!goalIsActive)
+                                              goalIsActive = true;
+                                          });
+                                        },
+                                        child: Container(
+                                          height: 22,
+                                          decoration: BoxDecoration(
+                                              color: goalIsActive
+                                                  ? tPrimaryColor
+                                                  : null,
+                                              borderRadius:
+                                                  BorderRadius.circular(24)),
+                                          child: Center(
+                                            child: Text(
+                                              "Active",
+                                              style: TextStyle(
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: tSecondaryColor),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setStates(() {
+                                            if (goalIsActive)
+                                              goalIsActive = false;
+                                          });
+                                        },
+                                        child: Container(
+                                          height: 22,
+                                          decoration: BoxDecoration(
+                                              color: !goalIsActive
+                                                  ? tPrimaryColor
+                                                  : null,
+                                              borderRadius:
+                                                  BorderRadius.circular(24)),
+                                          child: Center(
+                                            child: Text(
+                                              "Inactive",
+                                              style: TextStyle(
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: tSecondaryColor),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              Text(
+                                "Recurring Order of:",
+                                style: TextStyle(
+                                  fontFamily: 'Barlow',
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: invalidEntryAmount
+                                            ? tredColor
+                                            : tSecondaryColor)),
+                                child: editGoalAmount
+                                    ? TextFormField(
+                                        autofocus: true,
+                                        textAlign: TextAlign.center,
+                                        controller: goalAmountController,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: <TextInputFormatter>[
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        style: TextStyle(
+                                            fontFamily: 'Barlow',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.all(0),
+                                          enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              width: 0,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : InkWell(
+                                        onTap: () {
+                                          setStates(() {
+                                            if (!editGoalAmount)
+                                              editGoalAmount = true;
+                                            print(editGoalAmount);
+                                          });
+                                        },
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                "£${getAmount(goalAmountController.text)} worth of Gold",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontFamily: 'Barlow',
+                                                    fontSize: 15,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: 8,
+                                            ),
+                                            Icon(
+                                              Icons.edit,
+                                              size: 14,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Paying with",
+                                        style: TextStyle(
+                                          fontFamily: 'Barlow',
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 4,
+                                      ),
+                                      if (defPaymentDeatils != null)
+                                        Row(
+                                          children: [
+                                            Image.asset(
+                                              getcardType(defPaymentDeatils[
+                                                          'card']['wallet'] !=
+                                                      null
+                                                  ? defPaymentDeatils['card']
+                                                      ['wallet']['type']
+                                                  : ''),
+                                              width: 30,
+                                            ),
+                                            SizedBox(
+                                              width: 4,
+                                            ),
+                                            Text(
+                                              getcardTypeName(defPaymentDeatils[
+                                                          'card']['wallet'] !=
+                                                      null
+                                                  ? defPaymentDeatils['card']
+                                                      ['wallet']['type']
+                                                  : ''),
+                                              style: TextStyle(
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            SizedBox(
+                                              width: 4,
+                                            ),
+                                            InkWell(
+                                              child: Image.asset(
+                                                "images/down.png",
+                                                width: 12,
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                    ],
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Repeat",
+                                        style: TextStyle(
+                                          fontFamily: 'Barlow',
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 4,
+                                      ),
+                                      InkWell(
+                                        onTap: repeatgoal,
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              "images/calender.png",
+                                              width: 24,
+                                            ),
+                                            SizedBox(
+                                              width: 4,
+                                            ),
+                                            Text(
+                                              "Monthly on 23rd",
+                                              style: TextStyle(
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            SizedBox(
+                                              width: 4,
+                                            ),
+                                            InkWell(
+                                              child: Image.asset(
+                                                "images/down.png",
+                                                width: 12,
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 24,
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: loading
+                                          ? null
+                                          : () async {
+                                              if (goalNameController
+                                                      .text.isEmpty ||
+                                                  goalNameController.text ==
+                                                      "" ||
+                                                  goalAmountController
+                                                      .text.isEmpty ||
+                                                  getAmount(goalAmountController
+                                                          .text) ==
+                                                      "") {
+                                                if ((goalNameController
+                                                            .text.isEmpty ||
+                                                        goalNameController
+                                                                .text ==
+                                                            "") &&
+                                                    (goalAmountController
+                                                            .text.isEmpty ||
+                                                        getAmount(
+                                                                goalAmountController
+                                                                    .text) ==
+                                                            "")) {
+                                                  print("bothfalse");
+                                                  setStates(() {
+                                                    invalidEntryName = true;
+                                                    invalidEntryAmount = true;
+                                                  });
+                                                }
+
+                                                if (goalNameController
+                                                        .text.isEmpty ||
+                                                    goalNameController.text ==
+                                                        "")
+                                                  setStates(() {
+                                                    invalidEntryName = true;
+                                                    invalidEntryAmount = false;
+                                                  });
+                                                if (goalAmountController
+                                                        .text.isEmpty ||
+                                                    getAmount(
+                                                            goalAmountController
+                                                                .text) ==
+                                                        "")
+                                                  setStates(() {
+                                                    invalidEntryAmount = true;
+                                                    invalidEntryName = false;
+                                                  });
+                                                return;
+                                              }
+                                              setStates(() {
+                                                loading = true;
+                                                invalidEntryAmount = false;
+                                                invalidEntryName = false;
+                                              });
+                                              var goalName;
+                                              var amount;
+                                              var date;
+                                              var currentStatus =
+                                                  goalIsActive ? 2 : 1;
+                                              goalName =
+                                                  goalNameController.text;
+                                              amount =
+                                                  goalAmountController.text;
+                                              date = "1st of every month";
+                                              print("currentstatus" +
+                                                  currentStatus.toString());
+                                              var response = await OrderAPI()
+                                                  .editGoal(
+                                                      context,
+                                                      goalId,
+                                                      goalName,
+                                                      amount.replaceAll(
+                                                          RegExp(
+                                                              Secondarycurrency),
+                                                          ''),
+                                                      date,
+                                                      '1',
+                                                      currentStatus.toString());
+                                              print(response);
+                                              setStates(() {
+                                                loading = false;
+                                              });
+                                              Navigator.pop(context);
+                                              Twl.navigateTo(
+                                                  context,
+                                                  BottomNavigation(
+                                                    actionIndex: 0,
+                                                    tabIndexId: 0,
+                                                  ));
+                                            },
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        padding: EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                            color: tPrimaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(20)),
+                                        child: loading
+                                            ? SizedBox(
+                                                height: 20,
+                                                width: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ),
+                                              )
+                                            : Text(
+                                                "Confirm Changes",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontFamily: 'Barlow',
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  var top = 0.0;
   @override
   Widget build(BuildContext context) {
     ActionProvider _data = Provider.of<ActionProvider>(context);
@@ -155,561 +1181,1194 @@ class _DashBoardPageState extends State<DashBoardPage> {
               ),
             ),
           )
-        : SingleChildScrollView(
-            child: Container(
-              // padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 3.w, vertical: 4.h),
-                    color: tPrimaryColor,
-                    child: Row(
-                      children: [
-                        ArgonButton(
-                          highlightElevation: 0,
-                          elevation: 0,
-                          width: 30.w,
-                          height: isTab(context) ? 200 : 140,
-                          borderRadius: 15,
-                          color: tContainerColor,
-                          child: Goldcontainer(
-                            // selectedvalue == 1 ? btnColor : tContainerColor,
-                            goldGrams: _data.phyGoldDispalyType == 1
-                                ? '${totalGold}g'
-                                : (Secondarycurrency +
-                                    phyGoldValue.toStringAsFixed(2)),
-                            // goldGrams: '£5,300.72',
-                            imagess: Images.GOLD,
-                            title: "Physical Gold",
-                            ontap: () async {
-                              goldDisplaySheet(context, _data, phyGoldValue,
-                                  totalGold, Images.GOLD, 1);
-
-                              Segment.track(
-                                eventName: 'physical_gold_button',
-                                properties: {"tapped": true},
-                              );
-
-                              mixpanel.track(
-                                'physical_gold_button',
-                                properties: {"tapped": true},
-                              );
-
-                              await FirebaseAnalytics.instance.logEvent(
-                                name: "physical_gold_button",
-                                parameters: {"tapped": true},
-                              );
-                            },
-                          ),
-                          loader: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child: Lottie.asset(
-                                Loading.LOADING,
-                                // width: 50.w,
-                              )
-                              // SpinKitRotatingCircle(
-                              //   color: Colors.white,
-                              //   // size: loaderWidth ,
-                              // ),
-                              ),
-                          onTap: (tartLoading, stopLoading, btnState) {
-                            Twl.navigateTo(
-                              context,
-                              BottomNavigation(
-                                tabIndexId: 0,
-                                actionIndex: 0,
-                                homeindex: 1,
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(
-                          width: 2.w,
-                        ),
-                        // if (myGoalDetails != null)
-                        if (myGoalDetails['status'] == 'NOK')
-                          ArgonButton(
-                            elevation: 0,
-                            highlightElevation: 0,
-                            height: isTab(context) ? 200 : 140,
-                            width: 30.w,
-                            borderRadius: 10,
-                            color: tContainerColor,
-                            child: Container(
-                              width: 40.w,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.white,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 13),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    // height: 5.h,
-                                    // height: 38,
-                                    child: Image.asset(
-                                      Images.MUGOALGOLD,
-                                      height: 35,
-                                      // scale: 3,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 28,
-                                  ),
-                                  Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                        // color: tContainerColor,
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
-                                    // padding: EdgeInsets.fromLTRB(30, 15, 15, 15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text("Start a Goal!",
-                                            style: TextStyle(
-                                                color: tBlue,
-                                                fontFamily: 'Barlow',
-                                                fontSize:
-                                                    isTab(context) ? 11.sp : 19,
-                                                fontWeight: FontWeight.w700)
-                                            // style: TextStyle(
-                                            //     fontSize:
-                                            //         isTab(context) ? 13.sp : 19,
-                                            //     fontWeight: FontWeight.w500,
-                                            //     fontFamily: 'Barlow',
-                                            //     color: tBlue),
-                                            ),
-                                        SizedBox(
-                                          height: 3,
-                                        ),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            // if (verifStatus) {
-                                            Twl.navigateTo(
-                                                context, GoalAmount());
-                                            // } else {
-                                            //   Twl.navigateTo(
-                                            //       context, VeriffiPage());
-                                            // }
-                                            // Twl.navigateTo(context, NameYourGoal());
-
-                                            Segment.track(
-                                              eventName: 'start_a_goal_button',
-                                              properties: {"tapped": true},
-                                            );
-
-                                            mixpanel.track(
-                                              'start_a_goal_button',
-                                              properties: {"tapped": true},
-                                            );
-
-                                            await FirebaseAnalytics.instance
-                                                .logEvent(
-                                              name: "start_a_goal_button",
-                                              parameters: {"tapped": true},
-                                            );
-                                          },
-                                          child: Container(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 12, vertical: 8),
-                                              // width: 26.w,
-                                              // height: 22,
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  color: tTextformfieldColor),
-                                              child: Image.asset(
-                                                Images.RIGHTARROW,
-                                                scale: 7,
-                                              )
-                                              // Center(
-                                              //   child: Text(
-                                              //     'Start Now!',
-                                              //     textAlign: TextAlign.center,
-                                              //     style: TextStyle(
-                                              //       color: tSecondaryColor,
-                                              //       // fontFamily: 'Signika',
-                                              //       fontSize: 10.sp,
-                                              //     ),
-                                              //   ),
-                                              // ),
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            loader: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Lottie.asset(
-                                  Loading.LOADING,
-                                  // width: 50.w,
-                                )
-                                // SpinKitRotatingCircle(
-                                //   color: Colors.white,
-                                //   // size: loaderWidth ,
-                                // ),
-                                ),
-                            onTap: (tartLoading, stopLoading, btnState) {
-                              Twl.navigateTo(context, GoalAmount());
-                            },
-                          ),
-                        // if (myGoalDetails != null)
-                        if (myGoalDetails['status'] == 'OK')
-                          ArgonButton(
-                            highlightElevation: 0,
-                            elevation: 0,
-                            height: isTab(context) ? 200 : 140,
-                            width: 30.w,
-                            borderRadius: 10,
-                            color: tContainerColor,
-                            child: Container(
-                              width: 30.w,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.white,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 13),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    child: Image.asset(
-                                      'images/arc.png',
-                                      width: 40,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 28,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        _data.goalDispalyType == 1
-                                            ? avalibleGoalGold
-                                                    .toStringAsFixed(3) +
-                                                'g'
-                                            : '£${(goalTotalValue ?? 0).toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                            color: tBlue,
-                                            fontFamily: 'Barlow',
-                                            fontSize:
-                                                isTab(context) ? 13.sp : 24,
-                                            fontWeight: FontWeight.w700),
-                                      ),
-                                      SizedBox(
-                                        width: 4,
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          goldDisplaySheet(
-                                            context,
-                                            _data,
-                                            goalTotalValue,
-                                            avalibleGoalGold ?? 0,
-                                            Images.GOLD,
-                                            2,
-                                          );
-                                        },
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          padding: EdgeInsets.all(4),
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: tSecondaryColor)),
-                                          child: Image.asset(
-                                            'images/down.png',
-                                            height: 8,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Text(
-                                    myGoalDetails['name_of_goal'] == ''
-                                        ? "My Goal"
-                                        : myGoalDetails['details']
-                                            ['name_of_goal'],
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: tBlue,
-                                        fontFamily: 'Barlow',
-                                        fontSize: isTab(context) ? 11.sp : 15,
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            loader: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Lottie.asset(
-                                  Loading.LOADING,
-                                  // width: 50.w,
-                                )
-                                // SpinKitRotatingCircle(
-                                //   color: Colors.white,
-                                //   // size: loaderWidth ,
-                                // ),
-                                ),
-                            onTap: (tartLoading, stopLoading, btnState) {
-                              Twl.navigateTo(
-                                context,
-                                BottomNavigation(
-                                  tabIndexId: 0,
-                                  actionIndex: 0,
-                                  homeindex: 2,
-                                ),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 3.h,
-                    margin: EdgeInsets.all(0),
-                    color: tPrimaryColor,
+        : NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  backgroundColor: tPrimaryColor,
+                  automaticallyImplyLeading: false,
+                  expandedHeight: 430,
+                  floating: false,
+                  pinned: true,
+                  elevation: 0,
+                  bottom: PreferredSize(
+                    preferredSize: Size(200, 140),
                     child: Container(
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: Colors.white),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          )),
+                          border:
+                              Border(bottom: BorderSide(color: Colors.white))),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 3.h,
+                            margin: EdgeInsets.all(0),
+                            color: tPrimaryColor,
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.white),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
+                                  )),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 4,
+                                  ),
+                                  Center(
+                                    child: Container(
+                                      width: 20.w,
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                          color: tPrimaryColor,
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: () async {
+                                  await _data.changeActionIndex(0);
+                                  Twl.navigateTo(
+                                      context,
+                                      BottomNavigation(
+                                        tabIndexId: 1,
+                                        actionIndex: 0,
+                                      ));
+                                  _data.navGoldTypeaction('1');
+
+                                  Segment.track(
+                                    eventName: 'buy_gold_button',
+                                    properties: {"tapped": true},
+                                  );
+
+                                  await FirebaseAnalytics.instance.logEvent(
+                                    name: "buy_gold_button",
+                                    parameters: {"tapped": true},
+                                  );
+
+                                  mixpanel.track(
+                                    'buy_gold_button',
+                                    properties: {"tapped": true},
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 6.h,
+                                      width: 6.h,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: tSecondaryColor)),
+                                      child: Center(
+                                        child: Image.asset(
+                                          Images.QUICKGOLD,
+                                          width: 24.sp,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      "Invest",
+                                      style: TextStyle(
+                                          fontSize:
+                                              isTab(context) ? 18.sp : 10.sp,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'Barlow',
+                                          color: tSecondaryColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 4.w,
+                              ),
+                              InkWell(
+                                onTap: () async {
+                                  // if (verifStatus) {
+                                  await _data.changeActionIndex(3);
+                                  Twl.navigateTo(
+                                      context,
+                                      BottomNavigation(
+                                          tabIndexId: 1, actionIndex: 3));
+                                  // } else {
+                                  //   Twl.navigateTo(context, VeriffiPage());
+                                  // }
+                                  // widget.navigate(1);
+                                  // Twl.navigateTo(context, DeliveryForm());
+
+                                  Segment.track(
+                                    eventName: 'delivery_button',
+                                    properties: {"tapped": true},
+                                  );
+
+                                  await FirebaseAnalytics.instance.logEvent(
+                                    name: "delivery_button",
+                                    parameters: {"tapped": true},
+                                  );
+
+                                  mixpanel.track(
+                                    "delivery_button",
+                                    properties: {"tapped": true},
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 6.h,
+                                      width: 6.h,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: tSecondaryColor)),
+                                      child: Center(
+                                        child: Image.asset(
+                                          Images.DELIVERY,
+                                          width: 24.sp,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      "Deliver",
+                                      style: TextStyle(
+                                          fontSize:
+                                              isTab(context) ? 18.sp : 10.sp,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'Barlow',
+                                          color: tSecondaryColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 4.w,
+                              ),
+                              InkWell(
+                                onTap: () async {},
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 6.h,
+                                      width: 6.h,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: tSecondaryColor)),
+                                      child: Center(
+                                        child: Image.asset(
+                                          'images/arc.png',
+                                          width: 23.sp,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      "New Goal",
+                                      style: TextStyle(
+                                          fontSize:
+                                              isTab(context) ? 18.sp : 10.sp,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'Barlow',
+                                          color: tSecondaryColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 4.w,
+                              ),
+                              InkWell(
+                                onTap: () async {
+                                  print("asdcsa");
+                                  SharedPreferences sharedPreferences =
+                                      await SharedPreferences.getInstance();
+                                  var userId =
+                                      sharedPreferences.getString('userId');
+                                  var userName = sharedPreferences.getString(
+                                        'firstName',
+                                      )! +
+                                      ' ' +
+                                      sharedPreferences.getString(
+                                        'lastName',
+                                      )!;
+                                  var phoneNumber =
+                                      sharedPreferences.getString('username');
+                                  var email =
+                                      sharedPreferences.getString('email');
+                                  // print(userName);
+                                  print(phoneNumber);
+                                  print(email);
+                                  await Intercom.instance
+                                      .loginIdentifiedUser(userId: userId);
+                                  await Intercom.instance.updateUser(
+                                      name: userName,
+                                      phone: phoneNumber,
+                                      email: email);
+                                  await Intercom.instance.displayMessenger();
+                                  // Twl.navigateTo(context, Sorry());
+
+                                  Segment.track(
+                                    eventName: 'help_button',
+                                    properties: {"tapped": true},
+                                  );
+
+                                  await FirebaseAnalytics.instance.logEvent(
+                                    name: "help_button",
+                                    parameters: {"tapped": true},
+                                  );
+
+                                  mixpanel.track(
+                                    "help_button",
+                                    properties: {"tapped": true},
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 6.h,
+                                      width: 6.h,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: tSecondaryColor)),
+                                      child: Center(
+                                        child: Image.asset(
+                                          'images/question.png',
+                                          width: 16.sp,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      "Help",
+                                      style: TextStyle(
+                                          fontSize:
+                                              isTab(context) ? 18.sp : 10.sp,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'Barlow',
+                                          color: tSecondaryColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 16,
+                          ),
+                          Center(
+                            child: Container(
+                              height: 5.h,
+                              width: 70.w,
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  color: Color(0xffF3F4F6)),
+                              child: TabBar(
+                                indicatorWeight: 0,
+                                indicatorPadding: EdgeInsets.all(0),
+                                dividerColor: Colors.black,
+                                // isScrollable: true,
+                                controller: _tabController,
+                                labelColor: tSecondaryColor,
+                                unselectedLabelColor: tSecondaryColor,
+                                labelStyle: TextStyle(
+                                    fontSize: isTab(context) ? 18.sp : 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: 'Barlow',
+                                    color: tSecondaryColor),
+                                // labelPadding:
+                                //     EdgeInsets.symmetric(horizontal: 18),
+                                indicator: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(24)),
+                                tabs: [
+                                  Tab(text: 'Transactions'),
+                                  Tab(
+                                    text: 'Orders',
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+                  flexibleSpace: LayoutBuilder(builder: (context, constraints) {
+                    top = constraints.biggest.height;
+                    return FlexibleSpaceBar(
+                      collapseMode: CollapseMode.parallax,
+                      title: AnimatedOpacity(
+                          duration: Duration(milliseconds: 300),
+                          //opacity: top == MediaQuery.of(context).padding.top + kToolbarHeight ? 1.0 : 0.0,
+                          opacity: 1.0,
+                          child: Text(
+                            "top.toString()",
+                            style:
+                                TextStyle(fontSize: 12.0, color: Colors.black),
+                          )),
+                      background: Container(
+                        // padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              color: Colors.white,
+                              height: 48,
+                            ),
+                            Container(
+                              color: Colors.white,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Hi ${firstname?[0].toUpperCase() ?? ''}${firstname?.substring(1) ?? ''}👋",
+                                        style: TextStyle(
+                                            fontFamily: 'Barlow',
+                                            fontSize: 28,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold),
+                                      )
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Twl.navigateTo(context, ProfilePage());
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                          border:
+                                              Border.all(color: tPrimaryColor),
+                                          shape: BoxShape.circle),
+                                      child: Text(
+                                          (firstname != null &&
+                                                  lastName != null)
+                                              ? (firstname[0].toUpperCase() ??
+                                                      '') +
+                                                  (lastName[0].toUpperCase() ??
+                                                      '')
+                                              : '',
+                                          style: TextStyle(
+                                              color: tSecondaryColor,
+                                              fontFamily: 'Barlow',
+                                              fontSize: 9.sp,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              color: Colors.white,
+                              height: 8,
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 3.w, vertical: 4.h),
+                              color: tPrimaryColor,
+                              child: Row(
+                                children: [
+                                  ArgonButton(
+                                    highlightElevation: 0,
+                                    elevation: 0,
+                                    width: 30.w,
+                                    height: isTab(context) ? 200 : 140,
+                                    borderRadius: 15,
+                                    color: tContainerColor,
+                                    child: Goldcontainer(
+                                      // selectedvalue == 1 ? btnColor : tContainerColor,
+                                      goldGrams: _data.phyGoldDispalyType == 1
+                                          ? '${totalGold}g'
+                                          : (Secondarycurrency +
+                                              phyGoldValue.toStringAsFixed(2)),
+                                      // goldGrams: '£5,300.72',
+                                      imagess: Images.GOLD,
+                                      title: "Physical Gold",
+                                      ontap: () async {
+                                        goldDisplaySheet(
+                                            context,
+                                            _data,
+                                            phyGoldValue,
+                                            totalGold,
+                                            Images.GOLD,
+                                            1);
+
+                                        Segment.track(
+                                          eventName: 'physical_gold_button',
+                                          properties: {"tapped": true},
+                                        );
+
+                                        mixpanel.track(
+                                          'physical_gold_button',
+                                          properties: {"tapped": true},
+                                        );
+
+                                        await FirebaseAnalytics.instance
+                                            .logEvent(
+                                          name: "physical_gold_button",
+                                          parameters: {"tapped": true},
+                                        );
+                                      },
+                                    ),
+                                    loader: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child: Lottie.asset(
+                                          Loading.LOADING,
+                                          // width: 50.w,
+                                        )
+                                        // SpinKitRotatingCircle(
+                                        //   color: Colors.white,
+                                        //   // size: loaderWidth ,
+                                        // ),
+                                        ),
+                                    onTap:
+                                        (tartLoading, stopLoading, btnState) {
+                                      // Twl.navigateTo(
+                                      //   context,
+                                      //   BottomNavigation(
+                                      //     tabIndexId: 0,
+                                      //     actionIndex: 0,
+                                      //     homeindex: 1,
+                                      //   ),
+                                      // );
+                                    },
+                                  ),
+                                  SizedBox(
+                                    width: 2.w,
+                                  ),
+                                  // if (myGoalDetails != null)
+                                  if (myGoalDetails['status'] == 'NOK')
+                                    ArgonButton(
+                                      elevation: 0,
+                                      highlightElevation: 0,
+                                      height: isTab(context) ? 200 : 140,
+                                      width: 30.w,
+                                      borderRadius: 10,
+                                      color: tContainerColor,
+                                      child: Container(
+                                        width: 30.w,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: Colors.white,
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 13),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              // height: 5.h,
+                                              // height: 38,
+                                              child: Image.asset(
+                                                Images.MUGOALGOLD,
+                                                height: 35,
+                                                // scale: 3,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 29,
+                                            ),
+                                            Container(
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                  // color: tContainerColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          15)),
+                                              // padding: EdgeInsets.fromLTRB(30, 15, 15, 15),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () async {
+                                                      // if (verifStatus) {
+                                                      Twl.navigateTo(context,
+                                                          GoalAmount());
+                                                      // } else {
+                                                      //   Twl.navigateTo(
+                                                      //       context, VeriffiPage());
+                                                      // }
+                                                      // Twl.navigateTo(context, NameYourGoal());
+
+                                                      Segment.track(
+                                                        eventName:
+                                                            'start_a_goal_button',
+                                                        properties: {
+                                                          "tapped": true
+                                                        },
+                                                      );
+
+                                                      mixpanel.track(
+                                                        'start_a_goal_button',
+                                                        properties: {
+                                                          "tapped": true
+                                                        },
+                                                      );
+
+                                                      await FirebaseAnalytics
+                                                          .instance
+                                                          .logEvent(
+                                                        name:
+                                                            "start_a_goal_button",
+                                                        parameters: {
+                                                          "tapped": true
+                                                        },
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                        padding:
+                                                            EdgeInsets.all(4),
+                                                        // width: 26.w,
+                                                        // height: 22,
+                                                        decoration: BoxDecoration(
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            border: Border.all(
+                                                                color:
+                                                                    tSecondaryColor)),
+                                                        child: Image.asset(
+                                                          Images.RIGHTARROW,
+                                                          scale: 7,
+                                                        )
+                                                        // Center(
+                                                        //   child: Text(
+                                                        //     'Start Now!',
+                                                        //     textAlign: TextAlign.center,
+                                                        //     style: TextStyle(
+                                                        //       color: tSecondaryColor,
+                                                        //       // fontFamily: 'Signika',
+                                                        //       fontSize: 10.sp,
+                                                        //     ),
+                                                        //   ),
+                                                        // ),
+                                                        ),
+                                                  ),
+                                                  Text("Start a Goal!",
+                                                      style: TextStyle(
+                                                          color: tBlue,
+                                                          fontFamily: 'Barlow',
+                                                          fontSize:
+                                                              isTab(context)
+                                                                  ? 11.sp
+                                                                  : 15,
+                                                          fontWeight:
+                                                              FontWeight.w700)
+                                                      // style: TextStyle(
+                                                      //     fontSize:
+                                                      //         isTab(context) ? 13.sp : 19,
+                                                      //     fontWeight: FontWeight.w500,
+                                                      //     fontFamily: 'Barlow',
+                                                      //     color: tBlue),
+                                                      ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      loader: Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: Lottie.asset(
+                                            Loading.LOADING,
+                                            // width: 50.w,
+                                          )
+                                          // SpinKitRotatingCircle(
+                                          //   color: Colors.white,
+                                          //   // size: loaderWidth ,
+                                          // ),
+                                          ),
+                                      onTap:
+                                          (tartLoading, stopLoading, btnState) {
+                                        Twl.navigateTo(context, GoalAmount());
+                                      },
+                                    ),
+                                  // if (myGoalDetails != null)
+                                  if (myGoalDetails['status'] == 'OK')
+                                    ArgonButton(
+                                      highlightElevation: 0,
+                                      elevation: 0,
+                                      height: isTab(context) ? 200 : 140,
+                                      width: 30.w,
+                                      borderRadius: 10,
+                                      color: tContainerColor,
+                                      child: Container(
+                                        width: 30.w,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: Colors.white,
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 13),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              child: Image.asset(
+                                                'images/arc.png',
+                                                width: 40,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 24,
+                                            ),
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  _data.goalDispalyType == 1
+                                                      ? avalibleGoalGold
+                                                              .toStringAsFixed(
+                                                                  3) +
+                                                          'g'
+                                                      : '£${(goalTotalValue ?? 0).toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                      color: tBlue,
+                                                      fontFamily: 'Barlow',
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 24,
+                                                      fontWeight:
+                                                          FontWeight.w700),
+                                                ),
+                                                SizedBox(
+                                                  width: 4,
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    goldDisplaySheet(
+                                                      context,
+                                                      _data,
+                                                      goalTotalValue,
+                                                      avalibleGoalGold ?? 0,
+                                                      Images.GOLD,
+                                                      2,
+                                                    );
+                                                  },
+                                                  child: Container(
+                                                    alignment: Alignment.center,
+                                                    padding: EdgeInsets.all(4),
+                                                    decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(
+                                                            color:
+                                                                tSecondaryColor)),
+                                                    child: Image.asset(
+                                                      'images/down.png',
+                                                      height: 8,
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            Text(
+                                              myGoalDetails['details']
+                                                          ['name_of_goal'] ==
+                                                      ''
+                                                  ? "My Goal"
+                                                  : myGoalDetails['details']
+                                                      ['name_of_goal'],
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  color: tBlue,
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: isTab(context)
+                                                      ? 11.sp
+                                                      : 15,
+                                                  fontWeight: FontWeight.w700),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      loader: Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: Lottie.asset(
+                                            Loading.LOADING,
+                                            // width: 50.w,
+                                          )
+                                          // SpinKitRotatingCircle(
+                                          //   color: Colors.white,
+                                          //   // size: loaderWidth ,
+                                          // ),
+                                          ),
+                                      onTap:
+                                          (tartLoading, stopLoading, btnState) {
+                                        // Twl.navigateTo(
+                                        //   context,
+                                        //   BottomNavigation(
+                                        //     tabIndexId: 0,
+                                        //     actionIndex: 0,
+                                        //     homeindex: 2,
+                                        //   ),
+                                        // );
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                            // Center(
+                            //   child: Container(
+                            //     height: 5.h,
+                            //     width: 70.w,
+                            //     padding: EdgeInsets.all(4),
+                            //     decoration: BoxDecoration(
+                            //         borderRadius: BorderRadius.circular(24),
+                            //         color: Color(0xffF3F4F6)),
+                            //     child: TabBar(
+                            //       controller: _tabController,
+                            //       labelColor: tSecondaryColor,
+                            //       unselectedLabelColor: tSecondaryColor,
+                            //       labelStyle: TextStyle(
+                            //           fontSize: isTab(context) ? 18.sp : 14.sp,
+                            //           fontWeight: FontWeight.w500,
+                            //           fontFamily: 'Barlow',
+                            //           color: tSecondaryColor),
+                            //       indicator: BoxDecoration(
+                            //           color: Colors.white,
+                            //           borderRadius: BorderRadius.circular(24)),
+                            //       tabs: [
+                            //         Tab(text: 'Transactions'),
+                            //         Tab(
+                            //           text: 'Orders',
+                            //         )
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
+                            // Expanded(
+                            //   child: Container(
+                            //       child: TabBarView(controller: _tabController, children: [
+                            //     Column(
+                            //       children: [
+                            //         for (int i = 0; i < 15; i++)
+                            //           Text(
+                            //             "tab1",
+                            //             style: TextStyle(
+                            //                 fontSize: 30.sp,
+                            //                 fontWeight: FontWeight.w500,
+                            //                 fontFamily: 'Barlow',
+                            //                 color: tSecondaryColor),
+                            //           ),
+                            //       ],
+                            //     ),
+                            //     Text("tab2")
+                            //   ])),
+                            // )
+                            // Container(
+                            //   color: Colors.white,
+                            //   child: Text(
+                            //     "Quick access",
+                            //     style: TextStyle(
+                            //         fontSize: isTab(context) ? 18.sp : 21.sp,
+                            //         fontWeight: FontWeight.w500,
+                            //         fontFamily: 'Signika',
+                            //         color: tSecondaryColor),
+                            //   ),
+                            // ),
+                            // SizedBox(
+                            //   height: 4.h,
+                            // ),
+                            // Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     MenuContainerWidget(
+                            //       tittle: "Buy Gold",
+                            //       image: Images.QUICKGOLD,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         await _data.changeActionIndex(0);
+                            //         Twl.navigateTo(
+                            //             context,
+                            //             BottomNavigation(
+                            //               tabIndexId: 1,
+                            //               actionIndex: 0,
+                            //             ));
+                            //         _data.navGoldTypeaction('1');
+
+                            //         Segment.track(
+                            //           eventName: 'buy_gold_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "buy_gold_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           'buy_gold_button',
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //     MenuContainerWidget(
+                            //       tittle: "Sell Gold",
+                            //       image: Images.SELLGOLD,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         await _data.changeActionIndex(1);
+                            //         Twl.navigateTo(context,
+                            //             BottomNavigation(tabIndexId: 1, actionIndex: 0));
+
+                            //         Segment.track(
+                            //           eventName: 'sell_gold_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "sell_gold_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           "sell_gold_button",
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //     MenuContainerWidget(
+                            //       tittle: "Move",
+                            //       image: Images.MOVE,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         // await _data.changeActionIndex(2);
+                            //         // print('_data.initialIndex');
+                            //         // print(initialIndex);
+                            //         // if (verifStatus) {
+                            //         Twl.navigateTo(context,
+                            //             BottomNavigation(tabIndexId: 1, actionIndex: 2));
+                            //         _data.navGoldTypeaction('1');
+                            //         // } else {
+                            //         //   Twl.navigateTo(context, VeriffiPage());
+                            //         // }
+                            //         // widget.navigate(1);
+
+                            //         Segment.track(
+                            //           eventName: 'move_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "move_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           "move_button",
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
+                            // SizedBox(
+                            //   height: 4.h,
+                            // ),
+                            // Row(
+                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     MenuContainerWidget(
+                            //       tittle: "Delivery",
+                            //       image: Images.DELIVERY,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         // if (verifStatus) {
+                            //         await _data.changeActionIndex(3);
+                            //         Twl.navigateTo(context,
+                            //             BottomNavigation(tabIndexId: 1, actionIndex: 3));
+                            //         // } else {
+                            //         //   Twl.navigateTo(context, VeriffiPage());
+                            //         // }
+                            //         // widget.navigate(1);
+                            //         // Twl.navigateTo(context, DeliveryForm());
+
+                            //         Segment.track(
+                            //           eventName: 'delivery_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "delivery_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           "delivery_button",
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //     MenuContainerWidget(
+                            //       tittle: "Help",
+                            //       image: Images.HELPHOME,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         print("asdcsa");
+                            //         SharedPreferences sharedPreferences =
+                            //             await SharedPreferences.getInstance();
+                            //         var userId = sharedPreferences.getString('userId');
+                            //         var userName = sharedPreferences.getString(
+                            //               'firstName',
+                            //             )! +
+                            //             ' ' +
+                            //             sharedPreferences.getString(
+                            //               'lastName',
+                            //             )!;
+                            //         var phoneNumber =
+                            //             sharedPreferences.getString('username');
+                            //         var email = sharedPreferences.getString('email');
+                            //         // print(userName);
+                            //         print(phoneNumber);
+                            //         print(email);
+                            //         await Intercom.instance
+                            //             .loginIdentifiedUser(userId: userId);
+                            //         await Intercom.instance.updateUser(
+                            //             name: userName, phone: phoneNumber, email: email);
+                            //         await Intercom.instance.displayMessenger();
+                            //         // Twl.navigateTo(context, Sorry());
+
+                            //         Segment.track(
+                            //           eventName: 'help_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "help_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           "help_button",
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //     MenuContainerWidget(
+                            //       tittle: "New Goal",
+                            //       image: Images.NEWGOAL,
+                            //       onTap: (tartLoading, stopLoading, btnState) async {
+                            //         // if (verifStatus) {
+                            //         if (myGoalDetails['status'] == 'NOK') {
+                            //           Twl.navigateTo(context, GoalAmount());
+                            //         } else if (myGoalDetails['status'] == 'OK') {
+                            //           Twl.navigateTo(context, Sorry());
+                            //         }
+                            //         // } else {
+                            //         //   Twl.navigateTo(context, VeriffiPage());
+                            //         // }
+
+                            //         Segment.track(
+                            //           eventName: 'new_goal_button',
+                            //           properties: {"tapped": true},
+                            //         );
+
+                            //         await FirebaseAnalytics.instance.logEvent(
+                            //           name: "new_goal_button",
+                            //           parameters: {"tapped": true},
+                            //         );
+
+                            //         mixpanel.track(
+                            //           "new_goal_button",
+                            //           properties: {"tapped": true},
+                            //         );
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                )
+              ];
+            },
+            body: TabBarView(controller: _tabController, children: [
+              FutureBuilder<MyOrderDetialsModel>(
+                  future: MyOrderDetials,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      print("ERROR" + snapshot.error.toString());
+                      // return Text(snapshot.error.toString());
+                    }
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Center(
+                        child: Container(
+                          width: 10.w,
+                          height: 10.w,
+                          child: CircularProgressIndicator(
+                            color: tPrimaryColor,
+                          ),
+                        ),
+                      );
+                    }
+                    if (snapshot.hasData) {
+                      var orderdetails = snapshot.data!.details;
+                      // var details = orderdetails[0];
+                      return Padding(
+                        padding: const EdgeInsets.all(18.0),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 1.h,
+                            ),
+                            for (int i = 0; i < orderdetails.length; i++)
+                              (orderdetails[i].typeId != 3)
+                                  ? Column(
+                                      children: [
+                                        BuyContainerWidget(
+                                          tittle: getTypeOfActivity(
+                                              orderdetails[i].typeId),
+                                          // == Buy
+                                          //  ? "Buy" :details.typeId == Move? 'Move': "Sell",
+                                          date: Twl.dateFormate(
+                                              orderdetails[i].createdOn),
+                                          goldgrams:
+                                              "${(double.parse(orderdetails[i].quantity.replaceAll('g', '') == '' ? '0' : orderdetails[i].quantity.replaceAll('g', ''))).toStringAsFixed(3)} Grams",
+
+                                          cost: (orderdetails[i].typeId == 1 ||
+                                                  orderdetails[i].typeId == 2)
+                                              ? "£${orderdetails[i].totalWTax != null ? (orderdetails[i].totalWTax).toStringAsFixed(2) : ''}"
+                                              : null,
+                                          des: (orderdetails[i].typeId == 3 ||
+                                                  orderdetails[i].typeId == 4)
+                                              ? (orderdetails[i].moveDesc ?? '')
+                                              : '',
+                                          // : getDeliveryStatus(details.deliveryStatus ?? '1'),
+                                        ),
+                                        SizedBox(
+                                          height: 2.h,
+                                        ),
+                                      ],
+                                    )
+                                  : Container(),
+                          ],
+                        ),
+                      );
+                    }
+                    return Container();
+                  }),
+              Column(
+                children: [
+                  SizedBox(
+                    height: 1.h,
                   ),
                   Container(
-                    color: Colors.white,
-                    child: Text(
-                      "Quick access",
-                      style: TextStyle(
-                          fontSize: isTab(context) ? 18.sp : 21.sp,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Signika',
-                          color: tSecondaryColor),
+                    margin: const EdgeInsets.all(18.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: tPrimaryColor),
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                    child: Row(
+                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: Image.asset(
+                                'images/arc.png',
+                                width: 20.sp,
+                              )),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '£${myGoalDetails['details']['goal_amount']}',
+                                style: TextStyle(
+                                    color: tSecondaryColor,
+                                    fontFamily: 'Barlow',
+                                    fontSize: isTab(context) ? 9.sp : 12.sp,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                myGoalDetails['details']['payment_date'],
+                                style: TextStyle(
+                                    color: tSecondaryColor,
+                                    fontSize: isTab(context) ? 5.sp : 8.sp,
+                                    fontWeight: FontWeight.w400),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child:
+                              // Text(
+                              //         cost ?? "",
+                              //         style: TextStyle(
+                              //             color: tSecondaryColor,
+                              //             fontSize: isTab(context) ? 9.sp : 12.sp,
+                              //             fontWeight: FontWeight.w700),
+                              //       ),
+                              InkWell(
+                            onTap: () {
+                              editgoal();
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 14),
+                                  decoration: BoxDecoration(
+                                      color: tPrimaryColor,
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: Text(
+                                    "Edit Goal",
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isTab(context) ? 9.sp : 12.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(
-                    height: 4.h,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MenuContainerWidget(
-                        tittle: "Buy Gold",
-                        image: Images.QUICKGOLD,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          await _data.changeActionIndex(0);
-                          Twl.navigateTo(
-                              context,
-                              BottomNavigation(
-                                tabIndexId: 1,
-                                actionIndex: 0,
-                              ));
-                          _data.navGoldTypeaction('1');
-
-                          Segment.track(
-                            eventName: 'buy_gold_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "buy_gold_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            'buy_gold_button',
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                      MenuContainerWidget(
-                        tittle: "Sell Gold",
-                        image: Images.SELLGOLD,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          await _data.changeActionIndex(1);
-                          Twl.navigateTo(context,
-                              BottomNavigation(tabIndexId: 1, actionIndex: 0));
-
-                          Segment.track(
-                            eventName: 'sell_gold_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "sell_gold_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            "sell_gold_button",
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                      MenuContainerWidget(
-                        tittle: "Move",
-                        image: Images.MOVE,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          // await _data.changeActionIndex(2);
-                          // print('_data.initialIndex');
-                          // print(initialIndex);
-                          // if (verifStatus) {
-                          Twl.navigateTo(context,
-                              BottomNavigation(tabIndexId: 1, actionIndex: 2));
-                          _data.navGoldTypeaction('1');
-                          // } else {
-                          //   Twl.navigateTo(context, VeriffiPage());
-                          // }
-                          // widget.navigate(1);
-
-                          Segment.track(
-                            eventName: 'move_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "move_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            "move_button",
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 4.h,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      MenuContainerWidget(
-                        tittle: "Delivery",
-                        image: Images.DELIVERY,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          // if (verifStatus) {
-                          await _data.changeActionIndex(3);
-                          Twl.navigateTo(context,
-                              BottomNavigation(tabIndexId: 1, actionIndex: 3));
-                          // } else {
-                          //   Twl.navigateTo(context, VeriffiPage());
-                          // }
-                          // widget.navigate(1);
-                          // Twl.navigateTo(context, DeliveryForm());
-
-                          Segment.track(
-                            eventName: 'delivery_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "delivery_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            "delivery_button",
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                      MenuContainerWidget(
-                        tittle: "Help",
-                        image: Images.HELPHOME,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          print("asdcsa");
-                          SharedPreferences sharedPreferences =
-                              await SharedPreferences.getInstance();
-                          var userId = sharedPreferences.getString('userId');
-                          var userName = sharedPreferences.getString(
-                                'firstName',
-                              )! +
-                              ' ' +
-                              sharedPreferences.getString(
-                                'lastName',
-                              )!;
-                          var phoneNumber =
-                              sharedPreferences.getString('username');
-                          var email = sharedPreferences.getString('email');
-                          // print(userName);
-                          print(phoneNumber);
-                          print(email);
-                          await Intercom.instance
-                              .loginIdentifiedUser(userId: userId);
-                          await Intercom.instance.updateUser(
-                              name: userName, phone: phoneNumber, email: email);
-                          await Intercom.instance.displayMessenger();
-                          // Twl.navigateTo(context, Sorry());
-
-                          Segment.track(
-                            eventName: 'help_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "help_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            "help_button",
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                      MenuContainerWidget(
-                        tittle: "New Goal",
-                        image: Images.NEWGOAL,
-                        onTap: (tartLoading, stopLoading, btnState) async {
-                          // if (verifStatus) {
-                          if (myGoalDetails['status'] == 'NOK') {
-                            Twl.navigateTo(context, GoalAmount());
-                          } else if (myGoalDetails['status'] == 'OK') {
-                            Twl.navigateTo(context, Sorry());
-                          }
-                          // } else {
-                          //   Twl.navigateTo(context, VeriffiPage());
-                          // }
-
-                          Segment.track(
-                            eventName: 'new_goal_button',
-                            properties: {"tapped": true},
-                          );
-
-                          await FirebaseAnalytics.instance.logEvent(
-                            name: "new_goal_button",
-                            parameters: {"tapped": true},
-                          );
-
-                          mixpanel.track(
-                            "new_goal_button",
-                            properties: {"tapped": true},
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  )
                 ],
-              ),
-            ),
-          );
+              )
+            ])
+            // body: Container(
+            //   color: Colors.white,
+            //   child: Column(
+            //     children: [],
+            //   ),
+            // )
+            );
   }
 }
 

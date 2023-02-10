@@ -388,6 +388,7 @@ class _MyAppState extends State<MyApp> {
                   //   Theme.of(context).textTheme,
                   // ),
                   // primarySwatch: Colors.blue,
+                  // useMaterial3: true,
                   pageTransitionsTheme: PageTransitionsTheme(
                     builders: {
                       // for Android - default page transition
