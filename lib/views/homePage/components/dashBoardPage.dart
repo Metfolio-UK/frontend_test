@@ -1168,6 +1168,185 @@ class _DashBoardPageState extends State<DashBoardPage>
   }
 
   var top = 0.0;
+
+  Future<void> _showAlertDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 20),
+          content: Container(
+            width: 80.w,
+            height: 40.h,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 24,
+                    color: tPrimaryColor,
+                  ),
+                ),
+                SizedBox(
+                  height: 24,
+                ),
+                Text(
+                  "48.54 grams left to go!",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Signika',
+                  ),
+                ),
+                SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  "Use our awesome features to get there:",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'Barlow',
+                  ),
+                ),
+                SizedBox(
+                  height: 24,
+                ),
+                GridView.count(
+                  crossAxisSpacing: 18,
+                  shrinkWrap: true,
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.8,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    Container(
+                      padding: EdgeInsets.fromLTRB(2, 4, 2, 12),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: tSecondaryColor),
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            "Start a Goal!",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Signika',
+                            ),
+                          ),
+                          Image.asset(
+                            "images/arc.png",
+                            width: 50,
+                          ),
+                          Text(
+                            "Invest regularly in physical\ngold at the best market rates!",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'Barlow',
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                      color: tPrimaryColor,
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: Text(
+                                    "Start Today",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Barlow',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(2, 4, 2, 12),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: tSecondaryColor),
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            "Invest!",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Signika',
+                            ),
+                          ),
+                          Image.asset(
+                            Images.QUICKGOLD,
+                            width: 58,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              "Buy Gold now at the best\nmarket rates!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Barlow',
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                      color: tPrimaryColor,
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: Text(
+                                    "Buy Now",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Barlow',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ActionProvider _data = Provider.of<ActionProvider>(context);
@@ -1296,11 +1475,12 @@ class _DashBoardPageState extends State<DashBoardPage>
                               InkWell(
                                 onTap: () async {
                                   // if (verifStatus) {
-                                  await _data.changeActionIndex(3);
-                                  Twl.navigateTo(
-                                      context,
-                                      BottomNavigation(
-                                          tabIndexId: 1, actionIndex: 3));
+                                  _showAlertDialog();
+                                  // await _data.changeActionIndex(3);
+                                  // Twl.navigateTo(
+                                  //     context,
+                                  //     BottomNavigation(
+                                  //         tabIndexId: 1, actionIndex: 3));
                                   // } else {
                                   //   Twl.navigateTo(context, VeriffiPage());
                                   // }
@@ -1507,15 +1687,6 @@ class _DashBoardPageState extends State<DashBoardPage>
                     top = constraints.biggest.height;
                     return FlexibleSpaceBar(
                       collapseMode: CollapseMode.parallax,
-                      title: AnimatedOpacity(
-                          duration: Duration(milliseconds: 300),
-                          //opacity: top == MediaQuery.of(context).padding.top + kToolbarHeight ? 1.0 : 0.0,
-                          opacity: 1.0,
-                          child: Text(
-                            "top.toString()",
-                            style:
-                                TextStyle(fontSize: 12.0, color: Colors.black),
-                          )),
                       background: Container(
                         // padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
                         child: Column(
@@ -1555,7 +1726,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                                       decoration: BoxDecoration(
                                           border:
                                               Border.all(color: tPrimaryColor),
-                                          shape: BoxShape.circle),
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
                                       child: Text(
                                           (firstname != null &&
                                                   lastName != null)
@@ -2340,7 +2512,7 @@ class _DashBoardPageState extends State<DashBoardPage>
                                   padding: EdgeInsets.symmetric(
                                       vertical: 4, horizontal: 14),
                                   decoration: BoxDecoration(
-                                      color: tPrimaryColor,
+                                      color: grayColor,
                                       borderRadius: BorderRadius.circular(12)),
                                   child: Text(
                                     "Edit Goal",
