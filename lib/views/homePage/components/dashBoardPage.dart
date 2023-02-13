@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:base_project_flutter/models/myOrders.dart';
+import 'package:base_project_flutter/views/revivewPaymentDetails/revivewPaymentDetails.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:loading_icon_button/loading_icon_button.dart';
 import 'package:base_project_flutter/constants/constants.dart';
@@ -9,6 +13,7 @@ import 'package:base_project_flutter/globalFuctions/globalFunctions.dart';
 import 'package:base_project_flutter/main.dart';
 import 'package:base_project_flutter/views/bottomNavigation.dart/bottomNavigation.dart';
 import 'package:base_project_flutter/models/myOrders.dart' as myOrdersModel;
+import 'package:flutter_stripe/flutter_stripe.dart' as st;
 
 import 'package:base_project_flutter/views/nameyourgoal/nameyourgoal.dart';
 
@@ -143,6 +148,7 @@ class _DashBoardPageState extends State<DashBoardPage>
   var phyGoldValue = 0.0;
   var totalGold = '0';
   var verifStatus;
+  var goldWeigthRange;
   getGoldPrice() async {
     // var status = await checkVeriffStatus(context);
     // setState(() {
@@ -163,21 +169,229 @@ class _DashBoardPageState extends State<DashBoardPage>
     res = await UserAPI().getGoldPrice(context);
     print('getGoldPrice>>>>>>>>>>>>>');
     print(res);
-    if (mounted) {
-      setState(() {
-        priceDetails = res['details'];
-        if (avalibleGoalGold != null) {
-          goalTotalValue = avalibleGoalGold * (priceDetails['price_gram_24k']);
-          print('goalTotalValue');
-          print(goalTotalValue);
-        }
-      });
-    }
+    setState(() {
+      priceDetails = res['details'];
+
+      goldWeigthRange = res['details']['gold_weight_ranges'];
+
+      _priceController..text = _currentSliderValue.toString();
+      finalBuyValue(_currentSliderValue, priceDetails['price_gram_24k']);
+      if (avalibleGoalGold != null) {
+        goalTotalValue = avalibleGoalGold * (priceDetails['price_gram_24k']);
+        print('goalTotalValue');
+        print(goalTotalValue);
+      }
+    });
     checkGold();
     // }
 
     print('getGoldPrice');
     print(res);
+  }
+
+  finalBuyValuewithGrams(qty, goldPrice) async {
+    var mintingvalue;
+    var mintingvaluebefore = await getMintingvalue(
+      qty,
+    );
+    mintingvalue =
+        mintingvaluebefore * double.parse(goldPrice.toStringAsFixed(3));
+    var volatilityvalue;
+    var volatilityvaluebefore = await getvolatilityvalue(
+      qty,
+    );
+    volatilityvalue =
+        volatilityvaluebefore * double.parse(goldPrice.toStringAsFixed(3));
+    print('qty');
+    print(qty);
+    print("goldPrice");
+    print(goldPrice);
+    print('mintingvalue');
+    print(mintingvalue);
+    print('volatilityvalue');
+    print(volatilityvalue);
+    print(qty);
+    var finalBuyPrice;
+    for (var i = 0; i <= goldWeigthRange.length - 1; i++) {
+      if (qty >= goldWeigthRange[i]['gold_range_start'] &&
+          qty <= goldWeigthRange[i]['gold_range_end']) {
+        print('Between>>>>>>>');
+        // markupPercentage
+        var markupPercentage = goldWeigthRange[i]['markup_percentage'];
+
+        // TotalValueBeforeMarkup
+
+        var TotalValueBeforeMarkup = goldPrice +
+            double.parse(mintingvalue.toString()) +
+            double.parse(volatilityvalue.toString());
+
+        // FeesMarkup
+        var FeesMarkup =
+            (TotalValueBeforeMarkup) * goldWeigthRange[i]['markup_percentage'];
+        // finalBuyPrice
+        finalBuyPrice = TotalValueBeforeMarkup + FeesMarkup;
+        print('markupPercentage');
+        print(markupPercentage);
+        print('FeesMarkup');
+        print(FeesMarkup);
+        print('finalBuyPrice');
+        print(finalBuyPrice.toString());
+        // print(roundOffToXDecimal(2.274, numberOfDecimal: 2));
+        setState(() {
+          _priceController
+            ..text =
+                // Secondarycurrency +
+                (finalBuyPrice.toStringAsFixed(2)).toString();
+        });
+        print(finalBuyPrice.toStringAsFixed(2));
+
+        break;
+      }
+      // else {
+      //   // if (qty == '0' || qty == 0) {
+      //   //   print('Not between');
+      //   //   setState(() {
+      //   //     _priceController..text = '0';
+      //   //   });
+      //   //   return '0';
+      //   // }
+      // }
+    }
+    return finalBuyPrice.toStringAsFixed(2);
+  }
+
+  getMintingvalue(goldPrice) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var mintingPercent;
+    var mintingValue;
+    print("minivallll");
+    print(double.parse(sharedPreferences.getString('minting').toString()));
+    setState(() {
+      mintingPercent = sharedPreferences.getString('minting');
+      mintingValue = (double.parse(mintingPercent) / 100);
+      // *
+      //     double.parse(goldPrice.toStringAsFixed(3));
+    });
+    // print(gram);
+    // print(livePrice);
+    // print('mintingPercent');
+    // print(goldPrice.toStringAsFixed(3));
+    // print(mintingPercent);
+    // print(mintingValue);
+    return mintingValue;
+  }
+
+  getvolatilityvalue(goldPrice) async {
+    var volatilityPercent;
+    var volatilityValue;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      volatilityPercent = sharedPreferences.getString('volatility');
+      volatilityValue = (double.parse(volatilityPercent) / 100);
+      //  *
+      //     double.parse(goldPrice.toStringAsFixed(3));
+    });
+    return volatilityValue;
+  }
+
+  double roundDouble(double value, int places) {
+    var mod = pow(10.0, places);
+    return ((value * mod).round().toDouble() / mod);
+  }
+
+  finalBuyValue(amount, liveGoldPrice) async {
+    // var amount = 1132.96;
+    // var liveGoldPrice = 47.4700;
+    var mintingvalue = await getMintingvalue(liveGoldPrice);
+    var volatilityvalue = await getvolatilityvalue(liveGoldPrice);
+    print('amount');
+    print(amount);
+    print("liveGoldPrice");
+    print(liveGoldPrice);
+    print('mintingvalue');
+    print(mintingvalue);
+    print('volatilityvalue');
+    print(volatilityvalue);
+    var finalBuyPrice;
+    var oneGram = 1;
+    // var goldQuantityBeforeAddingTaxes = amount / liveGoldPrice;
+    // print('goldQuantityBeforeAddingTaxes ' +
+    //     goldQuantityBeforeAddingTaxes.toString());
+    // print(qty);
+    var markupPercentage;
+    var totalValueBeforeMarkup;
+    for (var i = 0; i <= goldWeigthRange.length - 1; i++) {
+      var goldValue = (oneGram * liveGoldPrice).toStringAsFixed(4);
+      // print('goldValue  ' + goldValue.toString());
+      var barMinting =
+          (double.parse(goldValue) * mintingvalue).toStringAsFixed(4);
+      var volatilityFees =
+          (double.parse(goldValue) * volatilityvalue).toStringAsFixed(4);
+      // print("barMinting " + barMinting.toString());
+      // print("volatilityFees " + volatilityFees.toString());
+      totalValueBeforeMarkup = (double.parse(goldValue.toString()) +
+              double.parse(barMinting.toString()) +
+              double.parse(volatilityFees.toString()))
+          .toStringAsFixed(4);
+      print('totalValueBeforeMarkup' + totalValueBeforeMarkup.toString());
+
+      if (amount >= goldWeigthRange[i]['range_price_start'] &&
+          amount <= goldWeigthRange[i]['range_orice_end']) {
+        markupPercentage =
+            (goldWeigthRange[i]['markup_percentage']).toStringAsFixed(2);
+        print('markupPercentage ' + markupPercentage.toString());
+        // var FeesMarkup =
+        //     (double.parse(markupPercentage) * totalValueBeforeMarkup)
+        //         .toStringAsFixed(4);
+        // print('FeesMarkup ' + FeesMarkup.toString());
+        // var buyPrice = (double.parse(FeesMarkup.toString()) +
+        //         double.parse(totalValueBeforeMarkup.toString()))
+        //     .toStringAsFixed(4);
+        // print('buyPrice ' + buyPrice.toString());
+        // finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
+        // print(finalBuyPrice);
+        // print('finalBuyPrice ' + finalBuyPrice.toString());
+        // break
+      }
+      //  else {
+      //   markupPercentage = (goldWeigthRange[goldWeigthRange.length - 1]
+      //           ['markup_percentage'])
+      //       .toStringAsFixed(2);
+      //   // print('markupPercentage ' + markupPercentage.toString());
+      //   // var FeesMarkup =
+      //   //     (double.parse(markupPercentage) * totalValueBeforeMarkup)
+      //   //         .toStringAsFixed(4);
+      //   // // print('FeesMarkup ' + FeesMarkup.toString());
+      //   // var buyPrice = (double.parse(FeesMarkup.toString()) +
+      //   //         double.parse(totalValueBeforeMarkup.toString()))
+      //   //     .toStringAsFixed(4);
+      //   // // print('buyPrice ' + buyPrice.toString());
+      //   // finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
+      //   // print(finalBuyPrice);
+      // }
+
+    }
+    print(markupPercentage);
+    var feesMarkup =
+        (double.parse(markupPercentage) * double.parse(totalValueBeforeMarkup))
+            .toStringAsFixed(4);
+    print('FeesMarkup ' + feesMarkup.toString());
+    var buyPrice = (double.parse(feesMarkup.toString()) +
+            double.parse(totalValueBeforeMarkup.toString()))
+        .toStringAsFixed(4);
+    print('buyPrice ' + buyPrice.toString());
+    finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
+    print(finalBuyPrice);
+    print('finalBuyPrice ' + finalBuyPrice.toString());
+    print("asdbcsa");
+    print(finalBuyPrice);
+    print(double.parse(finalBuyPrice).toStringAsFixed(3));
+    var goldUnits = (amount / double.parse(finalBuyPrice)).toStringAsFixed(3);
+    print('goldUnits ' + goldUnits);
+    setState(() {
+      _qtyController..text = goldUnits;
+    });
+    return goldUnits;
   }
 
   checkGold() async {
@@ -215,6 +429,1492 @@ class _DashBoardPageState extends State<DashBoardPage>
   var authCode;
   var details;
   var lastName;
+
+  String pay = "bank";
+  String repeat = "monthly";
+  TextEditingController _priceController = TextEditingController();
+  TextEditingController _qtyController = TextEditingController();
+
+  double _currentSliderValue = 1;
+
+  show() {
+    showModalBottomSheet(
+      context: context,
+      elevation: 10,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(20),
+          topRight: const Radius.circular(20),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (BuildContext context,
+            StateSetter setState /*You can rename this!*/) {
+          // UDE : SizedBox instead of Container for whitespaces
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.65,
+            padding: EdgeInsets.only(left: 16, right: 16),
+            child: ListView(
+              //mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Container(height: 5),
+                Center(
+                    child: Container(
+                  height: 5,
+                  width: 50,
+                  decoration: BoxDecoration(
+                      color: _getColorFromHex("#DEB14A"),
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                )),
+                Container(height: 20),
+                Center(
+                    child: Text("Type amount or use the slider",
+                        style: TextStyle(
+                            fontFamily: "Barlow",
+                            fontWeight: FontWeight.w300,
+                            color: tTextSecondary,
+                            fontSize: 14))),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text("\nStart Goal",
+                        style: TextStyle(
+                            fontFamily: "Barlow",
+                            fontWeight: FontWeight.bold,
+                            color: tTextSecondary,
+                            fontSize: 31)),
+                  ],
+                ),
+                Container(height: 10),
+                Container(
+                    height: 40,
+                    width: 360,
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _getColorFromHex("#1E365B"),
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: const Radius.circular(12),
+                          topRight: const Radius.circular(12),
+                        )),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                            width: 99,
+                            child: Center(
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text("GBP(£) ",
+                                        style: TextStyle(
+                                            fontFamily: "Barlow",
+                                            fontWeight: FontWeight.w700,
+                                            color: tTextSecondary,
+                                            fontSize: 16)),
+                                    Image.asset('images/euro.png', height: 20),
+                                  ]),
+                            )),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: _getColorFromHex("#1E365B"),
+                        ),
+                        Container(
+                            width: 226,
+                            child: Center(
+                              child: TextFormField(
+                                textAlign: TextAlign.center,
+                                controller: _priceController,
+
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.deny(
+                                    RegExp(
+                                        r'^0'), //users can't type 0 at 1st position
+                                  ),
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9]+[.]{0,1}[0-9]*')),
+                                  LengthLimitingTextFieldFormatterFixed(50000),
+                                  DecimalTextInputFormatter(decimalRange: 2)
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // readOnly: true,
+                                // keyboardType: TextInputType.phone,
+                                onChanged: (value) async {
+                                  if (value != '') {
+                                    var finalGrams = await finalBuyValue(
+                                        double.parse(value),
+                                        priceDetails['price_gram_24k']);
+                                    if (double.parse(value) >= 1) {
+                                      print((double.parse(value)) <= 100);
+                                      print(finalGrams);
+                                      if ((double.parse(value)) <= 5000) {
+                                        setState(() {
+                                          _currentSliderValue =
+                                              (double.parse(value));
+                                          if (value != '') {
+                                            // _qtyController..text = finalGrams;
+                                          } else {
+                                            _qtyController..text = '0';
+                                          }
+                                        });
+                                      } else if ((double.parse(value)) >=
+                                          50000) {
+                                        print("objegfbfgbfct");
+                                        setState(() {
+                                          _currentSliderValue = 5000;
+                                        });
+                                      } else {
+                                        setState(() {
+                                          _currentSliderValue = 5000;
+                                          _qtyController..text = finalGrams;
+                                        });
+                                      }
+                                    } else {
+                                      if (double.parse(value) >= 1) {
+                                        _currentSliderValue =
+                                            double.parse(value);
+                                      }
+                                      setState(() {
+                                        _qtyController..text = '0';
+                                      });
+                                    }
+                                  } else {
+                                    setState(() {
+                                      _qtyController..text = '0';
+                                    });
+                                  }
+                                },
+                                style: TextStyle(
+                                    fontFamily: 'Signika',
+                                    color: tTextSecondary,
+                                    fontSize: isTab(context) ? 13.sp : 16.sp,
+                                    fontWeight: FontWeight.w400),
+                                // maxLength: 4,
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    borderSide: BorderSide(
+                                      width: 1,
+                                      style: BorderStyle.none,
+                                    ),
+                                  ),
+                                  errorStyle: TextStyle(height: 0),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      width: 0,
+                                      style: BorderStyle.none,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    borderSide: BorderSide(
+                                      width: 1,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.red,
+                                      width: 1,
+                                    ),
+                                  ),
+
+                                  // prefix: Text('+91 ',style: TextStyle(color: tBlack),),
+                                  // prefixText: 'GBP ($Secondarycurrency):',
+
+                                  counterText: "",
+                                  // isDense: true,
+                                  contentPadding: EdgeInsets.only(
+                                    right: 21.w,
+                                    left: 20,
+                                    top: 9,
+                                    bottom: 9,
+                                  ),
+                                  prefixStyle: TextStyle(
+                                      fontFamily: 'Signika',
+                                      color: tTextSecondary,
+                                      fontSize: isTab(context) ? 13.sp : 16.sp,
+                                      fontWeight: FontWeight.w400),
+                                  // prefixIcon: Padding(
+                                  //   padding: const EdgeInsets.only(
+                                  //     top: 10,
+                                  //     left: 20,
+                                  //   ),
+                                  //   child: Text(
+                                  //     'GBP ($Secondarycurrency):',
+                                  //     style: TextStyle(
+                                  //       fontFamily: 'Signika',
+                                  //       color: tTextSecondary,
+                                  //       fontSize: isTab(context) ? 12.sp : 13.sp,
+                                  //       fontWeight: FontWeight.w400,
+                                  //     ),
+                                  //     textAlign: TextAlign.center,
+                                  //   ),
+                                  // ),
+                                  hintText: Secondarycurrency,
+                                  hintStyle: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: tSecondaryColor.withOpacity(0.3),
+                                      fontSize: isTab(context) ? 9.sp : 12.sp),
+                                  // hintText: 'Enter Your Mobile Number',
+                                  fillColor: tPrimaryTextformfield,
+                                  // contentPadding: EdgeInsets.only(
+                                  // right: 21.w,
+                                  // left: 20,
+                                  //   top: 2,
+                                  //   bottom: 2,
+                                  // ),
+                                  // filled: true,
+                                  // border: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(10),
+                                  //   borderSide: BorderSide(
+                                  //     width: 0,
+                                  //     style: BorderStyle.none,
+                                  //   ),
+                                  // ),
+                                ),
+                              ),
+                            ))
+                      ],
+                    )),
+                Container(height: 10),
+                Container(
+                  width: double.infinity,
+                  child: CupertinoSlider(
+                      thumbColor: tTextSecondary,
+                      activeColor: tTextSecondary,
+                      divisions: 5000,
+                      max: 5000,
+                      min: 1,
+                      value: _currentSliderValue,
+                      onChanged: (value) async {
+                        // var goldPrice =
+                        //     value * priceDetails['price_gram_24k'];
+                        var goldPrice = priceDetails['price_gram_24k'];
+                        print(roundDouble(value, 0));
+                        var finalBuyPrice = await finalBuyValue(
+                            roundDouble(value, 0), goldPrice);
+                        print(finalBuyPrice);
+                        setState(() {
+                          _currentSliderValue = value;
+                          _qtyController..text = finalBuyPrice;
+                          _priceController..text = value.toStringAsFixed(0);
+                        });
+                      }),
+                ),
+                Container(height: 10),
+                Container(
+                    height: 40,
+                    width: 360,
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _getColorFromHex("#1E365B"),
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: const Radius.circular(12),
+                          topRight: const Radius.circular(12),
+                        )),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                            width: 99,
+                            child: Center(
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text("Gold(g) ",
+                                        style: TextStyle(
+                                            fontFamily: "Barlow",
+                                            fontWeight: FontWeight.w700,
+                                            color: tTextSecondary,
+                                            fontSize: 16)),
+                                    Image.asset(Images.GOLD, height: 16),
+                                  ]),
+                            )),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: _getColorFromHex("#1E365B"),
+                        ),
+                        Container(
+                            width: 226,
+                            child: Center(
+                              child: TextFormField(
+                                textAlign: TextAlign.center,
+                                controller: _qtyController,
+                                // keyboardType: TextInputType.phone,
+                                // readOnly: true,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9]+[.]{0,1}[0-9]*')),
+                                  // FilteringTextInputFormatter.deny(
+                                  //   RegExp(
+                                  //       r'^0'), //users can't type 0 at 1st position
+                                  // ),
+                                  DecimalTextInputFormatter(decimalRange: 3),
+                                  LengthLimitingTextFieldFormatterFixed(1000),
+                                ],
+                                keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // focusNode: FocusNode(),
+                                // onTap: () => TextSelection(
+                                //       baseOffset: 0,
+                                //       extentOffset:
+                                //           _qtyController.value.text.length - 1,
+                                //     ),
+
+                                onChanged: (value) async {
+                                  if (value != '') {
+                                    // if (double.parse(value) != 1 ) {
+                                    setState(() {
+                                      //     _qtyController
+                                      //       ..text = num.parse(value)
+                                      //           .toDouble()
+                                      //           .toString();
+                                      _qtyController.selection =
+                                          TextSelection.fromPosition(
+                                              TextPosition(
+                                                  offset: _qtyController
+                                                      .text.length));
+                                    });
+                                    // }\
+
+                                    if ((1000 >=
+                                        double.parse(value.toString()))) {
+                                      var goldPrice =
+                                          double.parse(value).toDouble() *
+                                              priceDetails['price_gram_24k'];
+                                      var finalBuyPrice =
+                                          await finalBuyValuewithGrams(
+                                              roundDouble(
+                                                  double.parse(value), 3),
+                                              goldPrice);
+                                      if (double.parse(value) < 100) {
+                                        setState(() {
+                                          if (double.parse(finalBuyPrice) <=
+                                                  100 &&
+                                              double.parse(finalBuyPrice) >=
+                                                  1) {
+                                            _currentSliderValue = double.parse(
+                                                finalBuyPrice.toString());
+                                            _priceController
+                                              ..text = finalBuyPrice;
+                                          } else {
+                                            _currentSliderValue = 100;
+                                            _priceController
+                                              ..text = finalBuyPrice;
+                                          }
+                                        });
+                                      } else {
+                                        _currentSliderValue = 5000;
+                                        _priceController..text = finalBuyPrice;
+                                        // Twl.createAlert(context, "error",
+                                        //     "you can buy max 100 grams");
+                                      }
+                                    }
+                                  } else {
+                                    _priceController..text = '0';
+                                  }
+                                },
+                                style: TextStyle(
+                                    fontFamily: 'Signika',
+                                    color: tTextSecondary,
+                                    fontSize: isTab(context) ? 13.sp : 16.sp,
+                                    fontWeight: FontWeight.w400),
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    borderSide: BorderSide(
+                                      width: 1,
+                                      style: BorderStyle.none,
+                                    ),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      width: 0,
+                                      style: BorderStyle.none,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(12)),
+                                    borderSide: BorderSide(
+                                      width: 1,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.red,
+                                      width: 1,
+                                    ),
+                                  ),
+
+                                  // prefixText: 'Grams:',
+                                  // prefixStyle: TextStyle(
+                                  //   fontFamily: 'Signika',
+                                  //   color: tTextSecondary,
+                                  //   fontSize: isTab(context) ? 13.sp : 16.sp,
+                                  //   fontWeight: FontWeight.w400,
+                                  // ),
+                                  // prefixIcon: Padding(
+                                  //   padding: const EdgeInsets.only(
+                                  //     top: 10,
+                                  //     left: 20,
+                                  //   ),
+                                  //   child: Text(
+                                  //     'Grams:',
+                                  //     style: TextStyle(
+                                  //       fontFamily: 'Signika',
+                                  //       color: tTextSecondary,
+                                  //       fontSize: isTab(context) ? 12.sp : 13.sp,
+                                  //       fontWeight: FontWeight.w400,
+                                  //     ),
+                                  //     textAlign: TextAlign.center,
+                                  //   ),
+                                  // ),
+                                  // prefix: Text('+91 ',style: TextStyle(color: tBlack),),
+                                  hintText: 'g',
+                                  errorStyle: TextStyle(height: 0),
+                                  hintStyle: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: tSecondaryColor.withOpacity(0.3),
+                                      fontSize: isTab(context) ? 9.sp : 12.sp),
+                                  // hintText: 'Enter Your Mobile Number',
+                                  fillColor: tPrimaryTextformfield,
+                                  contentPadding: EdgeInsets.only(
+                                    right: 20.w,
+                                    left: 20,
+                                    top: 9,
+                                    bottom: 9,
+                                  ),
+                                  filled: false,
+                                  // border: OutlineInputBorder(
+                                  //   borderRadius: BorderRadius.circular(10),
+                                  //   borderSide: BorderSide(
+                                  //     width: 0,
+                                  //     style: BorderStyle.none,
+                                  //   ),
+                                  // ),
+                                  isDense: true,
+                                ),
+                              ),
+                            ))
+                      ],
+                    )),
+                Container(height: 120),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                        onTap: () async {
+                          showModalBottomSheet(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
+                              )),
+                              context: context,
+                              builder: (ctx) {
+                                return StatefulBuilder(builder:
+                                    (BuildContext context,
+                                        StateSetter
+                                            setState /*You can rename this!*/) {
+                                  // UDE : SizedBox instead of Container for whitespaces
+                                  return Container(
+                                      height: 1000,
+                                      child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 0),
+                                          child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 24,
+                                                        left: 8,
+                                                        right: 16),
+                                                    child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text('Paying with',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      "Barlow",
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color:
+                                                                      tTextSecondary,
+                                                                  fontSize:
+                                                                      26)),
+                                                          GestureDetector(
+                                                              onTap: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                show();
+                                                              },
+                                                              child: Text(
+                                                                  "Done",
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          "SignikaB",
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: _getColorFromHex(
+                                                                          "#2AB2BC"),
+                                                                      fontSize:
+                                                                          20)))
+                                                        ])),
+                                                Divider(
+                                                    color: _getColorFromHex(
+                                                        "#707070")),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 12, left: 12),
+                                                    child: Text("Pay with Bank",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 15))),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 12),
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        text: "Fee: ",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 10),
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: "No Fees ",
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    "Barlow",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: _getColorFromHex(
+                                                                    "#2AB2BC"),
+                                                                fontSize: 10),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )),
+                                                Container(
+                                                  height: 15,
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                    setState(() {
+                                                      pay = "bank";
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            "images/Bank.png",
+                                                            height: 30,
+                                                          ),
+                                                          SizedBox(width: 15),
+                                                          Text(
+                                                            'Pay with Bank',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            (pay == "bank")
+                                                                ? 'images/yes.png'
+                                                                : 'images/no.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+                                                //Pay with card
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 12, left: 12),
+                                                    child: Text('Pay with Card',
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 15))),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 12),
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        text: "Fee: ",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 10),
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text:
+                                                                "2.7% + 20p (Card Processing Fee) ",
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    "Barlow",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: _getColorFromHex(
+                                                                    "#2AB2BC"),
+                                                                fontSize: 10),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )),
+
+                                                Container(
+                                                  height: 15,
+                                                ),
+                                                if (Platform.isAndroid &&
+                                                    !Platform.isIOS)
+                                                  GestureDetector(
+                                                    onTap: () async {
+                                                      //    Twl.navigateBack(context);
+                                                      setState(() {
+                                                        pay = "google";
+                                                      });
+                                                    },
+                                                    child: Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                left: 12,
+                                                                right: 12),
+                                                        child: Row(
+                                                          children: [
+                                                            Image.asset(
+                                                              "assets/icons/gpay_Pay_Mark.png",
+                                                              width: 30,
+                                                            ),
+                                                            SizedBox(width: 15),
+                                                            Text(
+                                                              "Google Pay",
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontFamily:
+                                                                    'Barlow',
+                                                                fontSize: isTab(
+                                                                        context)
+                                                                    ? 10.sp
+                                                                    : 12.sp,
+                                                                color:
+                                                                    tSecondaryColor,
+                                                              ),
+                                                            ),
+                                                            Spacer(),
+
+                                                            /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                            Image.asset(
+                                                              (pay == "google")
+                                                                  ? 'images/yes.png'
+                                                                  : 'images/no.png',
+                                                              height: 20,
+                                                            ),
+                                                          ],
+                                                        )),
+                                                  ),
+                                                if (Platform.isAndroid &&
+                                                    !Platform.isIOS)
+                                                  Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 12,
+                                                        top: 12,
+                                                        bottom: 10,
+                                                      ),
+                                                      child: Container(
+                                                          height: 0.6,
+                                                          color:
+                                                              _getColorFromHex(
+                                                                  "#707070"))),
+                                                if (Platform.isAndroid &&
+                                                    !Platform.isIOS)
+                                                  Container(
+                                                    height: 0,
+                                                  ),
+                                                //pay with apple
+                                                if (st.Stripe.instance
+                                                    .isApplePaySupported.value)
+                                                  GestureDetector(
+                                                    onTap: () async {
+                                                      //    Twl.navigateBack(context);
+                                                      setState(() {
+                                                        pay = "apple";
+                                                      });
+                                                    },
+                                                    child: Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                left: 12,
+                                                                right: 12),
+                                                        child: Row(
+                                                          children: [
+                                                            Image.asset(
+                                                              "assets/icons/applePayBlack.png",
+                                                              width: 30,
+                                                            ),
+                                                            SizedBox(width: 15),
+                                                            Text(
+                                                              "Apple Pay",
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontFamily:
+                                                                    'Barlow',
+                                                                fontSize: isTab(
+                                                                        context)
+                                                                    ? 10.sp
+                                                                    : 12.sp,
+                                                                color:
+                                                                    tSecondaryColor,
+                                                              ),
+                                                            ),
+                                                            Spacer(),
+
+                                                            /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                            Image.asset(
+                                                              (pay == "apple")
+                                                                  ? 'images/yes.png'
+                                                                  : 'images/no.png',
+                                                              height: 20,
+                                                            ),
+                                                          ],
+                                                        )),
+                                                  ),
+                                                if (st.Stripe.instance
+                                                    .isApplePaySupported.value)
+                                                  Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 12,
+                                                        top: 12,
+                                                        bottom: 10,
+                                                      ),
+                                                      child: Container(
+                                                          height: 0.6,
+                                                          color:
+                                                              _getColorFromHex(
+                                                                  "#707070"))),
+
+                                                if (st.Stripe.instance
+                                                    .isApplePaySupported.value)
+                                                  Container(
+                                                    height: 10,
+                                                  ),
+                                                //pay with debit
+
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                    setState(() {
+                                                      pay = "card";
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            "assets/icons/cardIcon.png",
+                                                            width: 30,
+                                                          ),
+                                                          SizedBox(width: 15),
+                                                          Text(
+                                                            "Add debit/credit card",
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            (pay == "card")
+                                                                ? 'images/yes.png'
+                                                                : 'images/no.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+                                              ])));
+                                });
+                              });
+                        },
+                        child: Column(children: [
+                          Row(children: [
+                            Text("Paying with",
+                                style: TextStyle(
+                                    fontFamily: "Barlow",
+                                    fontWeight: FontWeight.w300,
+                                    color: tTextSecondary,
+                                    fontSize: 12)),
+                            Container(width: 50)
+                          ]),
+                          Transform.translate(
+                              offset: Offset(
+                                  (pay == "card" || pay == "bank") ? -17 : 0,
+                                  2),
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    (pay == "bank")
+                                        ? Image.asset('images/Bank.png',
+                                            height: 25)
+                                        : (pay == "card")
+                                            ? Image.asset(
+                                                'assets/icons/cardIcon.png',
+                                                width: 25)
+                                            : (pay == "apple")
+                                                ? Image.asset(
+                                                    'assets/icons/applePayBlack.png',
+                                                    width: 25)
+                                                : Image.asset(
+                                                    'assets/icons/gpay_Pay_Mark.png',
+                                                    width: 25),
+                                    Text(
+                                        (pay == "bank")
+                                            ? " Bank "
+                                            : (pay == "card")
+                                                ? " Card "
+                                                : (pay == "apple")
+                                                    ? " Apple Pay "
+                                                    : " Google Pay ",
+                                        style: TextStyle(
+                                            fontFamily: "Barlow",
+                                            fontWeight: FontWeight.w700,
+                                            color: tTextSecondary,
+                                            fontSize: 14)),
+                                    Image.asset('assets/icons/expandmore.png',
+                                        height: 11),
+                                  ]))
+                        ])),
+                    GestureDetector(
+                        onTap: () async {
+                          showModalBottomSheet(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
+                              )),
+                              context: context,
+                              builder: (ctx) {
+                                return StatefulBuilder(builder:
+                                    (BuildContext context,
+                                        StateSetter
+                                            setState /*You can rename this!*/) {
+                                  // UDE : SizedBox instead of Container for whitespaces
+                                  return Container(
+                                      height: 1000,
+                                      child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 0),
+                                          child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 24,
+                                                        left: 8,
+                                                        right: 16),
+                                                    child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text('Repeats on',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      "Barlow",
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color:
+                                                                      tTextSecondary,
+                                                                  fontSize:
+                                                                      26)),
+                                                          GestureDetector(
+                                                              onTap: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                show();
+                                                              },
+                                                              child: Text(
+                                                                  "Done",
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          "SignikaB",
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: _getColorFromHex(
+                                                                          "#2AB2BC"),
+                                                                      fontSize:
+                                                                          20)))
+                                                        ])),
+                                                Divider(
+                                                    color: _getColorFromHex(
+                                                        "#707070")),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 12, left: 12),
+                                                    child: Text("Start Date",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 15))),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 12),
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        text: "",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 10),
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text:
+                                                                "Your first transaction will occur on this date",
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    "Barlow",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: _getColorFromHex(
+                                                                    "#2AB2BC"),
+                                                                fontSize: 10),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )),
+                                                Container(
+                                                  height: 15,
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            'Start Date - 11/02/2023',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            'images/yes.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+                                                //Pay with card
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 12, left: 12),
+                                                    child: Text('Repeats',
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 15))),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 12),
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        text: "",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                "Barlow",
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color:
+                                                                tTextSecondary,
+                                                            fontSize: 10),
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text:
+                                                                "Your subsequent transactions will occur on this schedule",
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    "Barlow",
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: _getColorFromHex(
+                                                                    "#2AB2BC"),
+                                                                fontSize: 10),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )),
+
+                                                Container(
+                                                  height: 15,
+                                                ),
+
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                    setState(() {
+                                                      repeat = "daily";
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            "Daily",
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            (repeat == "daily")
+                                                                ? 'images/yes.png'
+                                                                : 'images/no.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+
+                                                Container(
+                                                  height: 0,
+                                                ),
+                                                //pay with apple
+
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                    setState(() {
+                                                      repeat = "weekly";
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            "Weekly",
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            (repeat == "weekly")
+                                                                ? 'images/yes.png'
+                                                                : 'images/no.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+
+                                                Container(
+                                                  height: 10,
+                                                ),
+                                                //pay with debit
+
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    //    Twl.navigateBack(context);
+                                                    setState(() {
+                                                      repeat = "monthly";
+                                                    });
+                                                  },
+                                                  child: Padding(
+                                                      padding: EdgeInsets.only(
+                                                          left: 12, right: 12),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            "Monthly",
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontFamily:
+                                                                  'Barlow',
+                                                              fontSize:
+                                                                  isTab(context)
+                                                                      ? 10.sp
+                                                                      : 12.sp,
+                                                              color:
+                                                                  tSecondaryColor,
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+
+                                                          /*  Text(
+                          '${physcialGold.toStringAsFixed(3)}g',
+                          style: TextStyle(
+                            // fontWeight: FontWeight.bold,
+                            fontSize: isTab(context) ? 10.sp : 12.sp,
+                            color: tSecondaryColor,
+                          ),
+                        ),*/
+
+                                                          Image.asset(
+                                                            (repeat ==
+                                                                    "monthly")
+                                                                ? 'images/yes.png'
+                                                                : 'images/no.png',
+                                                            height: 20,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                ),
+
+                                                Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 12,
+                                                      top: 12,
+                                                      bottom: 10,
+                                                    ),
+                                                    child: Container(
+                                                        height: 0.6,
+                                                        color: _getColorFromHex(
+                                                            "#707070"))),
+                                              ])));
+                                });
+                              });
+                        },
+                        child: Column(children: [
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text("Repeats",
+                                    style: TextStyle(
+                                        fontFamily: "Barlow",
+                                        fontWeight: FontWeight.w300,
+                                        color: tTextSecondary,
+                                        fontSize: 12)),
+                                Container(width: 110)
+                              ]),
+                          Transform.translate(
+                              offset: Offset(-10, 2),
+                              child: Row(children: [
+                                Container(
+                                    height: 25,
+                                    child: Center(
+                                        child: Image.asset("images/Cal.png",
+                                            height: 20))),
+                                Text(
+                                    " ${(repeat == "daily") ? 'Daily' : (repeat == "weekly") ? 'Weekly' : 'Monthly'}  on 11th ",
+                                    style: TextStyle(
+                                        fontFamily: "Barlow",
+                                        fontWeight: FontWeight.w700,
+                                        color: tTextSecondary,
+                                        fontSize: 14)),
+                                Image.asset('assets/icons/expandmore.png',
+                                    height: 11),
+                              ]))
+                        ]))
+                  ],
+                ),
+                Container(height: 20),
+                Container(
+                    height: 40,
+                    width: 356,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        primary: _getColorFromHex("#E5B02C"),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+
+                        var price;
+                        var qty;
+                        setState(() {
+                          var qtyFormate =
+                              num.parse(_qtyController.text).toDouble();
+                          var priceFormate =
+                              num.parse(_priceController.text).toDouble();
+                          price = priceFormate.toStringAsFixed(2);
+                          qty = qtyFormate.toString();
+                        });
+                        Twl.navigateTo(
+                            context,
+                            RevivewPaymentDetails(
+                                repeat: repeat,
+                                qty: qty.replaceAll(RegExp('g'), ''),
+                                price: price.replaceAll(
+                                    RegExp(Secondarycurrency), ''),
+                                type: Recuring,
+                                goldType: '1',
+                                liveGoldPrice: priceDetails['price_gram_24k'],
+                                payment: pay));
+                      },
+                      child: Text("Continue",
+                          style: TextStyle(
+                              fontFamily: "Barlow",
+                              fontWeight: FontWeight.w700,
+                              color: tTextSecondary,
+                              fontSize: 20)),
+                    )),
+                Container(height: 5),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
 
   checkLoginStatus() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -1243,8 +2943,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                             ),
                           ),
                           Image.asset(
-                            "images/arc.png",
-                            width: 50,
+                            "assets/icons/newgoal.png",
+                            scale: 4,
                           ),
                           Text(
                             "Invest regularly in physical\ngold at the best market rates!",
@@ -1534,7 +3234,9 @@ class _DashBoardPageState extends State<DashBoardPage>
                                 width: 4.w,
                               ),
                               InkWell(
-                                onTap: () async {},
+                                onTap: () async {
+                                  show();
+                                },
                                 child: Column(
                                   children: [
                                     Container(
@@ -1546,8 +3248,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                                               color: tSecondaryColor)),
                                       child: Center(
                                         child: Image.asset(
-                                          'images/arc.png',
-                                          width: 23.sp,
+                                          "assets/icons/newgoal.png",
+                                          scale: 4,
                                         ),
                                       ),
                                     ),
@@ -1655,7 +3357,7 @@ class _DashBoardPageState extends State<DashBoardPage>
                               child: TabBar(
                                 indicatorWeight: 0,
                                 indicatorPadding: EdgeInsets.all(0),
-                                dividerColor: Colors.black,
+                                // dividerColor: Colors.black,
                                 // isScrollable: true,
                                 controller: _tabController,
                                 labelColor: tSecondaryColor,
@@ -1751,16 +3453,15 @@ class _DashBoardPageState extends State<DashBoardPage>
                               height: 8,
                             ),
                             Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 3.w, vertical: 4.h),
+                              padding: EdgeInsets.only(left: 3.w, top: 6.h),
                               color: tPrimaryColor,
                               child: Row(
                                 children: [
                                   ArgonButton(
                                     highlightElevation: 0,
                                     elevation: 0,
-                                    width: 30.w,
-                                    height: isTab(context) ? 200 : 140,
+                                    width: 145,
+                                    height: 145,
                                     borderRadius: 15,
                                     color: tContainerColor,
                                     child: Goldcontainer(
@@ -1830,57 +3531,87 @@ class _DashBoardPageState extends State<DashBoardPage>
                                     ArgonButton(
                                       elevation: 0,
                                       highlightElevation: 0,
-                                      height: isTab(context) ? 200 : 140,
-                                      width: 30.w,
+                                      height: 145,
+                                      width: 145,
                                       borderRadius: 10,
                                       color: tContainerColor,
                                       child: Container(
-                                        width: 30.w,
                                         decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(10),
                                           color: Colors.white,
                                         ),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 13),
+                                        padding: EdgeInsets.only(
+                                            left: 10,
+                                            right: 10,
+                                            top: 12,
+                                            bottom: 5),
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Container(
-                                              // height: 5.h,
-                                              // height: 38,
-                                              child: Image.asset(
-                                                Images.MUGOALGOLD,
-                                                height: 35,
-                                                // scale: 3,
+                                            Row(children: [
+                                              Container(
+                                                // height: 5.h,
+                                                // height: 38,
+                                                child: Image.asset(
+                                                    "assets/icons/newgoal.png",
+                                                    width: 35
+                                                    // scale: 3,
+                                                    ),
+                                              ),
+                                              Container(width: 5),
+                                              Text(
+                                                "Goals!",
+                                                style: TextStyle(
+                                                  color: tBlue,
+                                                  fontFamily: 'Barlow',
+                                                  fontSize: isTab(context)
+                                                      ? 13.sp
+                                                      : 24,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ]),
+                                            Container(height: 2),
+                                            Text(
+                                              "Invest regularly in\nphysical gold at the\nbest market rates!",
+                                              style: TextStyle(
+                                                color: tBlue,
+                                                fontFamily: 'Barlow',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                            SizedBox(
-                                              height: 29,
-                                            ),
+                                            Container(height: 10),
                                             Container(
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                  // color: tContainerColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          15)),
-                                              // padding: EdgeInsets.fromLTRB(30, 15, 15, 15),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  GestureDetector(
-                                                    onTap: () async {
+                                                height: 30,
+                                                child: ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      elevation: 0,
+                                                      primary: _getColorFromHex(
+                                                          "#E5B02C"),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20)),
+                                                    ),
+                                                    onPressed: () async {
                                                       // if (verifStatus) {
-                                                      Twl.navigateTo(context,
-                                                          GoalAmount());
+
                                                       // } else {
                                                       //   Twl.navigateTo(
                                                       //       context, VeriffiPage());
                                                       // }
                                                       // Twl.navigateTo(context, NameYourGoal());
+
+                                                      /*   Twl.navigateTo(context,
+                                                          GoalAmount());*/
+
+                                                      show();
 
                                                       Segment.track(
                                                         eventName:
@@ -1907,54 +3638,23 @@ class _DashBoardPageState extends State<DashBoardPage>
                                                         },
                                                       );
                                                     },
-                                                    child: Container(
-                                                        padding:
-                                                            EdgeInsets.all(4),
-                                                        // width: 26.w,
-                                                        // height: 22,
-                                                        decoration: BoxDecoration(
-                                                            shape:
-                                                                BoxShape.circle,
-                                                            border: Border.all(
-                                                                color:
-                                                                    tSecondaryColor)),
-                                                        child: Image.asset(
-                                                          Images.RIGHTARROW,
-                                                          scale: 7,
-                                                        )
-                                                        // Center(
-                                                        //   child: Text(
-                                                        //     'Start Now!',
-                                                        //     textAlign: TextAlign.center,
-                                                        //     style: TextStyle(
-                                                        //       color: tSecondaryColor,
-                                                        //       // fontFamily: 'Signika',
-                                                        //       fontSize: 10.sp,
-                                                        //     ),
-                                                        //   ),
-                                                        // ),
-                                                        ),
-                                                  ),
-                                                  Text("Start a Goal!",
-                                                      style: TextStyle(
-                                                          color: tBlue,
-                                                          fontFamily: 'Barlow',
-                                                          fontSize:
-                                                              isTab(context)
-                                                                  ? 11.sp
-                                                                  : 15,
-                                                          fontWeight:
-                                                              FontWeight.w700)
-                                                      // style: TextStyle(
-                                                      //     fontSize:
-                                                      //         isTab(context) ? 13.sp : 19,
-                                                      //     fontWeight: FontWeight.w500,
-                                                      //     fontFamily: 'Barlow',
-                                                      //     color: tBlue),
-                                                      ),
-                                                ],
-                                              ),
-                                            ),
+                                                    child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text("Start Today",
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      "Barlow",
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  fontSize:
+                                                                      13)),
+                                                          Icon(Icons
+                                                              .keyboard_arrow_right)
+                                                        ])))
                                           ],
                                         ),
                                       ),
@@ -1980,12 +3680,11 @@ class _DashBoardPageState extends State<DashBoardPage>
                                     ArgonButton(
                                       highlightElevation: 0,
                                       elevation: 0,
-                                      height: isTab(context) ? 200 : 140,
-                                      width: 30.w,
+                                      height: 145,
+                                      width: 145,
                                       borderRadius: 10,
                                       color: tContainerColor,
                                       child: Container(
-                                        width: 30.w,
                                         decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(10),
@@ -1999,9 +3698,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                                           children: [
                                             Container(
                                               child: Image.asset(
-                                                'images/arc.png',
-                                                width: 40,
-                                              ),
+                                                  "assets/icons/newgoal.png",
+                                                  width: 35),
                                             ),
                                             SizedBox(
                                               height: 24,
@@ -2441,98 +4139,101 @@ class _DashBoardPageState extends State<DashBoardPage>
                     }
                     return Container();
                   }),
-              Column(
-                children: [
-                  SizedBox(
-                    height: 1.h,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.all(18.0),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: tPrimaryColor),
-                        borderRadius: BorderRadius.circular(12)),
-                    padding: EdgeInsets.symmetric(horizontal: 13, vertical: 6),
-                    child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Image.asset(
-                                'images/arc.png',
-                                width: 20.sp,
-                              )),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '£${myGoalDetails['details']['goal_amount']}',
-                                style: TextStyle(
-                                    color: tSecondaryColor,
-                                    fontFamily: 'Barlow',
-                                    fontSize: isTab(context) ? 9.sp : 12.sp,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                myGoalDetails['details']['payment_date'],
-                                style: TextStyle(
-                                    color: tSecondaryColor,
-                                    fontSize: isTab(context) ? 5.sp : 8.sp,
-                                    fontWeight: FontWeight.w400),
-                              ),
-                            ],
+              if (myGoalDetails['status'] == 'OK')
+                Column(
+                  children: [
+                    SizedBox(
+                      height: 1.h,
+                    ),
+                    Container(
+                      margin: const EdgeInsets.all(18.0),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: tPrimaryColor),
+                          borderRadius: BorderRadius.circular(12)),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      child: Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                                alignment: Alignment.centerLeft,
+                                child: Image.asset(
+                                  "assets/icons/newgoal.png",
+                                  scale: 4,
+                                )),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child:
-                              // Text(
-                              //         cost ?? "",
-                              //         style: TextStyle(
-                              //             color: tSecondaryColor,
-                              //             fontSize: isTab(context) ? 9.sp : 12.sp,
-                              //             fontWeight: FontWeight.w700),
-                              //       ),
-                              InkWell(
-                            onTap: () {
-                              editgoal();
-                            },
+                          Expanded(
+                            flex: 3,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 4, horizontal: 14),
-                                  decoration: BoxDecoration(
-                                      color: grayColor,
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: Text(
-                                    "Edit Goal",
-                                    textAlign: TextAlign.end,
-                                    style: TextStyle(
-                                      color: Colors.white,
+                                Text(
+                                  '£${myGoalDetails['details']['goal_amount']}',
+                                  style: TextStyle(
+                                      color: tSecondaryColor,
+                                      fontFamily: 'Barlow',
                                       fontSize: isTab(context) ? 9.sp : 12.sp,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  myGoalDetails['details']['payment_date'],
+                                  style: TextStyle(
+                                      color: tSecondaryColor,
+                                      fontSize: isTab(context) ? 5.sp : 8.sp,
+                                      fontWeight: FontWeight.w400),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              )
+                          Expanded(
+                            flex: 2,
+                            child:
+                                // Text(
+                                //         cost ?? "",
+                                //         style: TextStyle(
+                                //             color: tSecondaryColor,
+                                //             fontSize: isTab(context) ? 9.sp : 12.sp,
+                                //             fontWeight: FontWeight.w700),
+                                //       ),
+                                InkWell(
+                              onTap: () {
+                                editgoal();
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 4, horizontal: 14),
+                                    decoration: BoxDecoration(
+                                        color: grayColor,
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    child: Text(
+                                      "Edit Goal",
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: isTab(context) ? 9.sp : 12.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                )
             ])
             // body: Container(
             //   color: Colors.white,
@@ -2695,3 +4396,13 @@ goldDisplaySheet(context, _data, amount, gram, image, type) {
 //     // return Twl.createAlert(context, 'error', checkApi['error']);
 //   }
 // }
+
+_getColorFromHex(String hexColor) {
+  hexColor = hexColor.replaceAll("#", "");
+  if (hexColor.length == 6) {
+    hexColor = "FF" + hexColor;
+  }
+  if (hexColor.length == 8) {
+    return Color(int.parse("0x$hexColor"));
+  }
+}

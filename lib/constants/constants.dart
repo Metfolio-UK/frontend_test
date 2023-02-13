@@ -46,6 +46,7 @@ const currency = 'GBP';
 const Buy = 1;
 const Sell = 2;
 const Move = 2;
+const Recuring = 3;
 
 const physicalGold = 1;
 const myGoal = 2;
@@ -56,6 +57,7 @@ class GoldType {
   int Deliver = 5;
   int EditGoal = 6;
   int EndGoal = 7;
+  int Recuring = 8;
 }
 
 int daysInMonth(DateTime date) {

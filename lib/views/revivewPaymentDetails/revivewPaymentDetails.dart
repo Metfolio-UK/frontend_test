@@ -31,6 +31,7 @@ import '../successfullPage/PurchesedConfirmSucessfull.dart';
 class RevivewPaymentDetails extends StatefulWidget {
   RevivewPaymentDetails(
       {Key? key,
+      this.repeat,
       this.qty,
       this.price,
       this.type,
@@ -44,6 +45,7 @@ class RevivewPaymentDetails extends StatefulWidget {
   final goldType;
   final liveGoldPrice;
   final payment;
+  final repeat;
 
   @override
   State<RevivewPaymentDetails> createState() => _revivewPaymentDetailsState();
@@ -437,303 +439,63 @@ class _revivewPaymentDetailsState extends State<RevivewPaymentDetails>
                           //     ],
                           //   ),
                           // ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                Stack(children: [
-                                  Padding(
-                                      padding: EdgeInsets.only(left: 16),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          // createGoalAction();
-                                          Twl.navigateBack(context);
-                                        },
-                                        child: Image.asset("images/close.png",
-                                            height: 20),
-                                      )),
-                                  Center(
-                                      child: Image.asset(
-                                    Images.GOLD,
-                                    scale: 4,
-                                  ))
-                                ]),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Center(
-                                  child: Text(
-                                    "${widget.type == 1 ? 'Payment' : 'Sale'} Summary",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize:
-                                            isTab(context) ? 13.sp : 16.sp,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: 'Signika',
-                                        color: tSecondaryColor),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 50,
-                                ),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.only(left: 24, right: 12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Buying For",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                        Text(
-                                          widget.goldType == '1'
-                                              ? 'Physical Gold Account'
-                                              : 'My Goal',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                      ],
-                                    )),
-                                Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 24,
-                                      top: 3,
-                                      bottom: 10,
-                                    ),
-                                    child: Container(
-                                        height: 0.6,
-                                        color: _getColorFromHex("#707070"))),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.only(left: 24, right: 12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Order Type",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                        Text(
-                                          "${widget.type == 1 ? 'Buy' : 'Sell'}",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                      ],
-                                    )),
-                                Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 24,
-                                      top: 3,
-                                      bottom: 10,
-                                    ),
-                                    child: Container(
-                                        height: 0.6,
-                                        color: _getColorFromHex("#707070"))),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.only(left: 24, right: 12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Gold Value",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                        Text(
-                                          "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                      ],
-                                    )),
-                                Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 24,
-                                      top: 3,
-                                      bottom: 10,
-                                    ),
-                                    child: Container(
-                                        height: 0.6,
-                                        color: _getColorFromHex("#707070"))),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.only(left: 24, right: 12),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Gold Weight",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                        Text(
-                                          "${buyingQty.toString()} grams",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: isTab(context)
-                                                  ? 13.sp
-                                                  : 16.sp,
-                                              fontWeight: FontWeight.w500,
-                                              fontFamily: 'Signika',
-                                              color: tSecondaryColor),
-                                        ),
-                                      ],
-                                    )),
-                                Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 24,
-                                      top: 3,
-                                      bottom: 10,
-                                    ),
-                                    child: Container(
-                                        height: 0.6,
-                                        color: _getColorFromHex("#707070"))),
-                                if (widget.type == 1)
-                                  Column(children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 24, right: 12),
+                          (widget.type == 3)
+                              ? Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Stack(children: [
+                                        Padding(
+                                            padding: EdgeInsets.only(left: 16),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                // createGoalAction();
+                                                Twl.navigateBack(context);
+                                              },
+                                              child: Image.asset(
+                                                  "images/close.png",
+                                                  height: 20),
+                                            )),
+                                        Center(
+                                            child: Image.asset(
+                                          "assets/icons/newgoal.png",
+                                          scale: 4,
+                                        ))
+                                      ]),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Center(
                                         child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Metfolio Fixed Fee (4%)",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                            Text(
-                                              "${Secondarycurrency + (double.parse(buyingQty) * goldprice * 0.04).toStringAsFixed(2)} ",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                          ],
-                                        )),
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 24,
-                                          top: 3,
-                                          bottom: 10,
-                                        ),
-                                        child: Container(
-                                            height: 0.6,
-                                            color:
-                                                _getColorFromHex("#707070"))),
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 24, right: 12),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Payment Method",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                            Text(
-                                              (widget.payment == "bank")
-                                                  ? "Bank"
-                                                  : (widget.payment == "card")
-                                                      ? 'Credit/Debit Card'
-                                                      : (widget.payment ==
-                                                              "apple")
-                                                          ? "Apple Pay"
-                                                          : "Google Pay",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                          ],
-                                        )),
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 24,
-                                          top: 3,
-                                          bottom: 10,
-                                        ),
-                                        child: Container(
-                                            height: 0.6,
-                                            color:
-                                                _getColorFromHex("#707070"))),
-                                    if (widget.payment != "bank")
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                "My Goal",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Container(width: 8),
+                                              GestureDetector(
+                                                  onTap: () {},
+                                                  child: Icon(Icons.edit,
+                                                      size: 16))
+                                            ]),
+                                      ),
+                                      SizedBox(
+                                        height: 50,
+                                      ),
                                       Padding(
                                           padding: EdgeInsets.only(
                                               left: 24, right: 12),
@@ -742,7 +504,7 @@ class _revivewPaymentDetailsState extends State<RevivewPaymentDetails>
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                "Card Fees (2.7% +20p)",
+                                                "Buying Today",
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                     fontSize: isTab(context)
@@ -753,7 +515,7 @@ class _revivewPaymentDetailsState extends State<RevivewPaymentDetails>
                                                     color: tSecondaryColor),
                                               ),
                                               Text(
-                                                "${Secondarycurrency + ((double.parse(buyingQty) * goldprice * 0.04 * 0.027) + 0.2).toStringAsFixed(2)} ",
+                                                "${buyingQty.toString()}g",
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                     fontSize: isTab(context)
@@ -765,7 +527,6 @@ class _revivewPaymentDetailsState extends State<RevivewPaymentDetails>
                                               ),
                                             ],
                                           )),
-                                    if (widget.payment != "bank")
                                       Padding(
                                           padding: EdgeInsets.only(
                                             left: 24,
@@ -776,257 +537,1166 @@ class _revivewPaymentDetailsState extends State<RevivewPaymentDetails>
                                               height: 0.6,
                                               color:
                                                   _getColorFromHex("#707070"))),
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 24, right: 12),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Total",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                            Text(
-                                              "${Secondarycurrency + total} ",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: isTab(context)
-                                                      ? 13.sp
-                                                      : 16.sp,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontFamily: 'Signika',
-                                                  color: tSecondaryColor),
-                                            ),
-                                          ],
-                                        )),
-                                    Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 24,
-                                          top: 3,
-                                          bottom: 10,
-                                        ),
-                                        child: Container(
-                                            height: 0.6,
-                                            color:
-                                                _getColorFromHex("#707070"))),
-                                  ]),
-                                SizedBox(height: 10),
-                                Spacer(),
-                                Padding(
-                                    padding: EdgeInsets.only(left: 4, right: 4),
-                                    child: Align(
-                                        alignment: Alignment.center,
-                                        child: Container(
-                                            height: 40,
-                                            width: 280,
-                                            child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  elevation: 0,
-                                                  primary: _getColorFromHex(
-                                                      "#E5B02C"),
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Repeat",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "${(widget.repeat == "daily") ? 'Daily' : (widget.repeat == "weekly") ? 'Weekly' : 'Monthly'}  on 11th",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Order Type",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "Recurring Buy",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Order",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} Worth of Gold",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Column(children: [
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 24, right: 12),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Metfolio Fixed Fee (4%)",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
                                                 ),
-                                                onPressed: () async {
-                                                  print(widget.type);
-                                                  print(
-                                                      widget.type.runtimeType);
-                                                  var type = widget.type;
-                                                  //startLoading();
-                                                  loader(true);
-                                                  // var res = await OrderAPI().CashMode(context);
-                                                  // if (res != null && res["status"] == "OK") {
-
-                                                  if (widget.type == '1' ||
-                                                      widget.type == 1) {
-                                                    Twl.navigateTo(
-                                                        context,
-                                                        PaymentMethodPage(
-                                                          amount: buyingPrice,
-                                                          type: Buy,
-                                                          payment:
-                                                              widget.payment,
-                                                        ));
-                                                    // SharedPreferences sharedPrefs =
-                                                    //     await SharedPreferences.getInstance();
-                                                    // var authCode =
-                                                    //     sharedPrefs.getString('authCode');
-                                                    // var checkApi =
-                                                    //     await UserAPI().checkApi(authCode);
-                                                    // print(checkApi);
-                                                    // if (checkApi != null &&
-                                                    //     checkApi['status'] == "OK") {
-                                                    //   // if (checkApi['detail']['stripe_cus_id'] != null &&
-                                                    //   //     checkApi['detail']['stripe_cus_id'] != '') {
-                                                    //   var cusID;
-                                                    //   if (checkApi['detail']
-                                                    //               ['stripe_cus_id'] ==
-                                                    //           null ||
-                                                    //       checkApi['detail']
-                                                    //               ['stripe_cus_id'] ==
-                                                    //           "") {
-                                                    //     var customerRes = await UserAPI()
-                                                    //         .createCustomer(context);
-                                                    //     print(customerRes);
-                                                    //     if (customerRes != null &&
-                                                    //         customerRes['status'] == "OK") {
-                                                    //       setState(() {
-                                                    //         cusID = customerRes['details']
-                                                    //             ['stripe_cus_id'];
-                                                    //       });
-                                                    //       await makePayment(
-                                                    //           amount: (widget.price),
-                                                    //           currency: 'INR',
-                                                    //           cusID: cusID);
-                                                    //     } else {
-                                                    //       Twl.createAlert(context, 'error',
-                                                    //           customerRes['error']);
-                                                    //     }
-                                                    //   } else {
-                                                    //     setState(() {
-                                                    //       cusID = checkApi['detail']
-                                                    //           ['stripe_cus_id'];
-                                                    //     });
-                                                    //     await makePayment(
-                                                    //         amount: (widget.price),
-                                                    //         currency: 'INR',
-                                                    //         cusID: cusID);
-                                                    //   }
-                                                    // }
-                                                  } else {
-                                                    // if (isPasscodeExist) {
-                                                    //   Twl.navigateTo(
-                                                    //       context,
-                                                    //       EnterYourPasscode(
-                                                    //           type: GoldType().Sell,
-                                                    //           amount: widget.price));
-                                                    // } else {
-                                                    Twl.navigateTo(
-                                                        context,
-                                                        PaymentBankMethods(
-                                                            amount:
-                                                                buyingPrice));
-                                                    // var cashModeRes =
-                                                    //     await OrderAPI().CashMode(context);
-                                                    // print(cashModeRes);
-                                                    // if (cashModeRes != null &&
-                                                    //     cashModeRes['status'] == "OK") {
-                                                    //   Twl.navigateTo(context,
-                                                    //       PurchesedConfirmSucessful());
-                                                    // } else {
-                                                    //   Twl.createAlert(context, 'error',
-                                                    //       cashModeRes['error']);
-                                                    // }
-                                                    // }
-                                                  }
-
-                                                  // } else {
-                                                  //   stopLoading();
-                                                  //   Twl.createAlert(context, 'error', res["error"]);
-                                                  // }
-                                                  loader(false);
-
-                                                  await analytics.logEvent(
-                                                    name: "payment_summary",
-                                                    parameters: {
-                                                      "phy_gold_quantity":
-                                                          "${buyingQty.toString()} g",
-                                                      "phy_gold_price":
-                                                          "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
-                                                      "fees":
-                                                          "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
-                                                      "total_price":
-                                                          "${Secondarycurrency + buyingPrice}",
-                                                      "button_clicked": true,
-                                                    },
-                                                  );
-
-                                                  Segment.track(
-                                                    eventName:
-                                                        'payment_summary',
-                                                    properties: {
-                                                      "phy_gold_quantity":
-                                                          "${buyingQty.toString()} g",
-                                                      "phy_gold_price":
-                                                          "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
-                                                      "fees":
-                                                          "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
-                                                      "total_price":
-                                                          "${Secondarycurrency + buyingPrice}",
-                                                      "clicked": true
-                                                    },
-                                                  );
-
-                                                  mixpanel.track(
-                                                      'payment_summary',
-                                                      properties: {
-                                                        "phy_gold_quantity":
-                                                            "${buyingQty.toString()} g",
-                                                        "phy_gold_price":
-                                                            "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
-                                                        "fees":
-                                                            "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
-                                                        "total_price":
-                                                            "${Secondarycurrency + buyingPrice}",
-                                                        "button_clicked": true,
-                                                      });
-
-                                                  await logEvent(
-                                                      "payment_summary", {
-                                                    "phy_gold_quantity":
-                                                        "${buyingQty.toString()} g",
-                                                    "phy_gold_price":
-                                                        "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
-                                                    "fees":
-                                                        "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
-                                                    "total_price":
-                                                        "${Secondarycurrency + buyingPrice}",
-                                                    "button_clicked": true,
-                                                  });
-                                                },
-                                                child: Text(
-                                                    widget.type == 1
-                                                        ? "Buy ${Secondarycurrency + ((double.parse(buyingQty) * goldprice * 0.04 * 0.027) + 0.2 + (double.parse(buyingQty) * goldprice * 0.04) + (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}"
-                                                        : "Sell ${buyingQty.toString()} grams",
+                                                Text(
+                                                  "${Secondarycurrency + (double.parse(buyingQty) * goldprice * 0.04).toStringAsFixed(2)} ",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
+                                                ),
+                                              ],
+                                            )),
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                              left: 24,
+                                              top: 3,
+                                              bottom: 10,
+                                            ),
+                                            child: Container(
+                                                height: 0.6,
+                                                color: _getColorFromHex(
+                                                    "#707070"))),
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 24, right: 12),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Payment Method",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
+                                                ),
+                                                Text(
+                                                  (widget.payment == "bank")
+                                                      ? "Bank"
+                                                      : (widget.payment ==
+                                                              "card")
+                                                          ? 'Credit/Debit Card'
+                                                          : (widget.payment ==
+                                                                  "apple")
+                                                              ? "Apple Pay"
+                                                              : "Google Pay",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
+                                                ),
+                                              ],
+                                            )),
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                              left: 24,
+                                              top: 3,
+                                              bottom: 10,
+                                            ),
+                                            child: Container(
+                                                height: 0.6,
+                                                color: _getColorFromHex(
+                                                    "#707070"))),
+                                        if (widget.payment != "bank")
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                  left: 24, right: 12),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Card Fees (2.7% +20p)",
+                                                    textAlign: TextAlign.center,
                                                     style: TextStyle(
-                                                        color: tSecondaryColor,
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
                                                         fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 24)))))),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    widget.type == 1
-                                        ? 'You will receive a receipt via email for your purchase'
-                                        : 'You will receive the credit from your sale within 3 business days, and a receipt has been sent to you via email ',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: "Barlow",
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 14,
-                                      color: tSecondaryColor,
-                                    ),
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                  Text(
+                                                    "${Secondarycurrency + ((double.parse(buyingQty) * goldprice * 0.04 * 0.027) + 0.2).toStringAsFixed(2)} ",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                ],
+                                              )),
+                                        if (widget.payment != "bank")
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 24,
+                                                top: 3,
+                                                bottom: 10,
+                                              ),
+                                              child: Container(
+                                                  height: 0.6,
+                                                  color: _getColorFromHex(
+                                                      "#707070"))),
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 24, right: 12),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Total",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
+                                                ),
+                                                Text(
+                                                  "${Secondarycurrency + total} ",
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontSize: isTab(context)
+                                                          ? 13.sp
+                                                          : 16.sp,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontFamily: 'Signika',
+                                                      color: tSecondaryColor),
+                                                ),
+                                              ],
+                                            )),
+                                        Padding(
+                                            padding: EdgeInsets.only(
+                                              left: 24,
+                                              top: 3,
+                                              bottom: 10,
+                                            ),
+                                            child: Container(
+                                                height: 0.6,
+                                                color: _getColorFromHex(
+                                                    "#707070"))),
+                                      ]),
+                                      SizedBox(height: 10),
+                                      Spacer(),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 4, right: 4),
+                                          child: Align(
+                                              alignment: Alignment.center,
+                                              child: Container(
+                                                  height: 40,
+                                                  width: 280,
+                                                  child: ElevatedButton(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        elevation: 0,
+                                                        primary:
+                                                            _getColorFromHex(
+                                                                "#E5B02C"),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                      ),
+                                                      onPressed: () async {
+                                                        print(widget.type);
+                                                        print(widget
+                                                            .type.runtimeType);
+                                                        var type = widget.type;
+                                                        //startLoading();
+                                                        loader(true);
+                                                        // var res = await OrderAPI().CashMode(context);
+                                                        // if (res != null && res["status"] == "OK") {
+
+                                                        if (widget.type ==
+                                                                '1' ||
+                                                            widget.type == 1) {
+                                                          Twl.navigateTo(
+                                                              context,
+                                                              PaymentMethodPage(
+                                                                amount:
+                                                                    buyingPrice,
+                                                                type: Buy,
+                                                                payment: widget
+                                                                    .payment,
+                                                              ));
+                                                          // SharedPreferences sharedPrefs =
+                                                          //     await SharedPreferences.getInstance();
+                                                          // var authCode =
+                                                          //     sharedPrefs.getString('authCode');
+                                                          // var checkApi =
+                                                          //     await UserAPI().checkApi(authCode);
+                                                          // print(checkApi);
+                                                          // if (checkApi != null &&
+                                                          //     checkApi['status'] == "OK") {
+                                                          //   // if (checkApi['detail']['stripe_cus_id'] != null &&
+                                                          //   //     checkApi['detail']['stripe_cus_id'] != '') {
+                                                          //   var cusID;
+                                                          //   if (checkApi['detail']
+                                                          //               ['stripe_cus_id'] ==
+                                                          //           null ||
+                                                          //       checkApi['detail']
+                                                          //               ['stripe_cus_id'] ==
+                                                          //           "") {
+                                                          //     var customerRes = await UserAPI()
+                                                          //         .createCustomer(context);
+                                                          //     print(customerRes);
+                                                          //     if (customerRes != null &&
+                                                          //         customerRes['status'] == "OK") {
+                                                          //       setState(() {
+                                                          //         cusID = customerRes['details']
+                                                          //             ['stripe_cus_id'];
+                                                          //       });
+                                                          //       await makePayment(
+                                                          //           amount: (widget.price),
+                                                          //           currency: 'INR',
+                                                          //           cusID: cusID);
+                                                          //     } else {
+                                                          //       Twl.createAlert(context, 'error',
+                                                          //           customerRes['error']);
+                                                          //     }
+                                                          //   } else {
+                                                          //     setState(() {
+                                                          //       cusID = checkApi['detail']
+                                                          //           ['stripe_cus_id'];
+                                                          //     });
+                                                          //     await makePayment(
+                                                          //         amount: (widget.price),
+                                                          //         currency: 'INR',
+                                                          //         cusID: cusID);
+                                                          //   }
+                                                          // }
+                                                        } else {
+                                                          // if (isPasscodeExist) {
+                                                          //   Twl.navigateTo(
+                                                          //       context,
+                                                          //       EnterYourPasscode(
+                                                          //           type: GoldType().Sell,
+                                                          //           amount: widget.price));
+                                                          // } else {
+                                                          Twl.navigateTo(
+                                                              context,
+                                                              PaymentBankMethods(
+                                                                  amount:
+                                                                      buyingPrice));
+                                                          // var cashModeRes =
+                                                          //     await OrderAPI().CashMode(context);
+                                                          // print(cashModeRes);
+                                                          // if (cashModeRes != null &&
+                                                          //     cashModeRes['status'] == "OK") {
+                                                          //   Twl.navigateTo(context,
+                                                          //       PurchesedConfirmSucessful());
+                                                          // } else {
+                                                          //   Twl.createAlert(context, 'error',
+                                                          //       cashModeRes['error']);
+                                                          // }
+                                                          // }
+                                                        }
+
+                                                        // } else {
+                                                        //   stopLoading();
+                                                        //   Twl.createAlert(context, 'error', res["error"]);
+                                                        // }
+                                                        loader(false);
+
+                                                        await analytics
+                                                            .logEvent(
+                                                          name:
+                                                              "payment_summary",
+                                                          parameters: {
+                                                            "phy_gold_quantity":
+                                                                "${buyingQty.toString()} g",
+                                                            "phy_gold_price":
+                                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                            "fees":
+                                                                "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                            "total_price":
+                                                                "${Secondarycurrency + buyingPrice}",
+                                                            "button_clicked":
+                                                                true,
+                                                          },
+                                                        );
+
+                                                        Segment.track(
+                                                          eventName:
+                                                              'payment_summary',
+                                                          properties: {
+                                                            "phy_gold_quantity":
+                                                                "${buyingQty.toString()} g",
+                                                            "phy_gold_price":
+                                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                            "fees":
+                                                                "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                            "total_price":
+                                                                "${Secondarycurrency + buyingPrice}",
+                                                            "clicked": true
+                                                          },
+                                                        );
+
+                                                        mixpanel.track(
+                                                            'payment_summary',
+                                                            properties: {
+                                                              "phy_gold_quantity":
+                                                                  "${buyingQty.toString()} g",
+                                                              "phy_gold_price":
+                                                                  "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                              "fees":
+                                                                  "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                              "total_price":
+                                                                  "${Secondarycurrency + buyingPrice}",
+                                                              "button_clicked":
+                                                                  true,
+                                                            });
+
+                                                        await logEvent(
+                                                            "payment_summary", {
+                                                          "phy_gold_quantity":
+                                                              "${buyingQty.toString()} g",
+                                                          "phy_gold_price":
+                                                              "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                          "fees":
+                                                              "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                          "total_price":
+                                                              "${Secondarycurrency + buyingPrice}",
+                                                          "button_clicked":
+                                                              true,
+                                                        });
+                                                      },
+                                                      child: Text(
+                                                          "Confirm Order",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  tSecondaryColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize:
+                                                                  24)))))),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'You will receive an email of your receipt in full.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontFamily: "Barlow",
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: 14,
+                                            color: tSecondaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                      )
+                                    ],
+                                  ),
+                                )
+                              : Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Stack(children: [
+                                        Padding(
+                                            padding: EdgeInsets.only(left: 16),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                // createGoalAction();
+                                                Twl.navigateBack(context);
+                                              },
+                                              child: Image.asset(
+                                                  "images/close.png",
+                                                  height: 20),
+                                            )),
+                                        Center(
+                                            child: Image.asset(
+                                          Images.GOLD,
+                                          scale: 4,
+                                        ))
+                                      ]),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Center(
+                                        child: Text(
+                                          "${widget.type == 1 ? 'Payment' : 'Sale'} Summary",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              fontSize: isTab(context)
+                                                  ? 13.sp
+                                                  : 16.sp,
+                                              fontWeight: FontWeight.w500,
+                                              fontFamily: 'Signika',
+                                              color: tSecondaryColor),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 50,
+                                      ),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Buying For",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                widget.goldType == '1'
+                                                    ? 'Physical Gold Account'
+                                                    : 'My Goal',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Order Type",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "${widget.type == 1 ? 'Buy' : 'Sell'}",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Gold Value",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 24, right: 12),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Gold Weight",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                              Text(
+                                                "${buyingQty.toString()} grams",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: isTab(context)
+                                                        ? 13.sp
+                                                        : 16.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontFamily: 'Signika',
+                                                    color: tSecondaryColor),
+                                              ),
+                                            ],
+                                          )),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                            left: 24,
+                                            top: 3,
+                                            bottom: 10,
+                                          ),
+                                          child: Container(
+                                              height: 0.6,
+                                              color:
+                                                  _getColorFromHex("#707070"))),
+                                      if (widget.type == 1)
+                                        Column(children: [
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                  left: 24, right: 12),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Metfolio Fixed Fee (4%)",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                  Text(
+                                                    "${Secondarycurrency + (double.parse(buyingQty) * goldprice * 0.04).toStringAsFixed(2)} ",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                ],
+                                              )),
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 24,
+                                                top: 3,
+                                                bottom: 10,
+                                              ),
+                                              child: Container(
+                                                  height: 0.6,
+                                                  color: _getColorFromHex(
+                                                      "#707070"))),
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                  left: 24, right: 12),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Payment Method",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                  Text(
+                                                    (widget.payment == "bank")
+                                                        ? "Bank"
+                                                        : (widget.payment ==
+                                                                "card")
+                                                            ? 'Credit/Debit Card'
+                                                            : (widget.payment ==
+                                                                    "apple")
+                                                                ? "Apple Pay"
+                                                                : "Google Pay",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                ],
+                                              )),
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 24,
+                                                top: 3,
+                                                bottom: 10,
+                                              ),
+                                              child: Container(
+                                                  height: 0.6,
+                                                  color: _getColorFromHex(
+                                                      "#707070"))),
+                                          if (widget.payment != "bank")
+                                            Padding(
+                                                padding: EdgeInsets.only(
+                                                    left: 24, right: 12),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Card Fees (2.7% +20p)",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontSize:
+                                                              isTab(context)
+                                                                  ? 13.sp
+                                                                  : 16.sp,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          fontFamily: 'Signika',
+                                                          color:
+                                                              tSecondaryColor),
+                                                    ),
+                                                    Text(
+                                                      "${Secondarycurrency + ((double.parse(buyingQty) * goldprice * 0.04 * 0.027) + 0.2).toStringAsFixed(2)} ",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                          fontSize:
+                                                              isTab(context)
+                                                                  ? 13.sp
+                                                                  : 16.sp,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          fontFamily: 'Signika',
+                                                          color:
+                                                              tSecondaryColor),
+                                                    ),
+                                                  ],
+                                                )),
+                                          if (widget.payment != "bank")
+                                            Padding(
+                                                padding: EdgeInsets.only(
+                                                  left: 24,
+                                                  top: 3,
+                                                  bottom: 10,
+                                                ),
+                                                child: Container(
+                                                    height: 0.6,
+                                                    color: _getColorFromHex(
+                                                        "#707070"))),
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                  left: 24, right: 12),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "Total",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                  Text(
+                                                    "${Secondarycurrency + total} ",
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: isTab(context)
+                                                            ? 13.sp
+                                                            : 16.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontFamily: 'Signika',
+                                                        color: tSecondaryColor),
+                                                  ),
+                                                ],
+                                              )),
+                                          Padding(
+                                              padding: EdgeInsets.only(
+                                                left: 24,
+                                                top: 3,
+                                                bottom: 10,
+                                              ),
+                                              child: Container(
+                                                  height: 0.6,
+                                                  color: _getColorFromHex(
+                                                      "#707070"))),
+                                        ]),
+                                      SizedBox(height: 10),
+                                      Spacer(),
+                                      Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 4, right: 4),
+                                          child: Align(
+                                              alignment: Alignment.center,
+                                              child: Container(
+                                                  height: 40,
+                                                  width: 280,
+                                                  child: ElevatedButton(
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        elevation: 0,
+                                                        primary:
+                                                            _getColorFromHex(
+                                                                "#E5B02C"),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20)),
+                                                      ),
+                                                      onPressed: () async {
+                                                        print(widget.type);
+                                                        print(widget
+                                                            .type.runtimeType);
+                                                        var type = widget.type;
+                                                        //startLoading();
+                                                        loader(true);
+                                                        // var res = await OrderAPI().CashMode(context);
+                                                        // if (res != null && res["status"] == "OK") {
+
+                                                        if (widget.type ==
+                                                                '1' ||
+                                                            widget.type == 1) {
+                                                          Twl.navigateTo(
+                                                              context,
+                                                              PaymentMethodPage(
+                                                                amount:
+                                                                    buyingPrice,
+                                                                type: Buy,
+                                                                payment: widget
+                                                                    .payment,
+                                                              ));
+                                                          // SharedPreferences sharedPrefs =
+                                                          //     await SharedPreferences.getInstance();
+                                                          // var authCode =
+                                                          //     sharedPrefs.getString('authCode');
+                                                          // var checkApi =
+                                                          //     await UserAPI().checkApi(authCode);
+                                                          // print(checkApi);
+                                                          // if (checkApi != null &&
+                                                          //     checkApi['status'] == "OK") {
+                                                          //   // if (checkApi['detail']['stripe_cus_id'] != null &&
+                                                          //   //     checkApi['detail']['stripe_cus_id'] != '') {
+                                                          //   var cusID;
+                                                          //   if (checkApi['detail']
+                                                          //               ['stripe_cus_id'] ==
+                                                          //           null ||
+                                                          //       checkApi['detail']
+                                                          //               ['stripe_cus_id'] ==
+                                                          //           "") {
+                                                          //     var customerRes = await UserAPI()
+                                                          //         .createCustomer(context);
+                                                          //     print(customerRes);
+                                                          //     if (customerRes != null &&
+                                                          //         customerRes['status'] == "OK") {
+                                                          //       setState(() {
+                                                          //         cusID = customerRes['details']
+                                                          //             ['stripe_cus_id'];
+                                                          //       });
+                                                          //       await makePayment(
+                                                          //           amount: (widget.price),
+                                                          //           currency: 'INR',
+                                                          //           cusID: cusID);
+                                                          //     } else {
+                                                          //       Twl.createAlert(context, 'error',
+                                                          //           customerRes['error']);
+                                                          //     }
+                                                          //   } else {
+                                                          //     setState(() {
+                                                          //       cusID = checkApi['detail']
+                                                          //           ['stripe_cus_id'];
+                                                          //     });
+                                                          //     await makePayment(
+                                                          //         amount: (widget.price),
+                                                          //         currency: 'INR',
+                                                          //         cusID: cusID);
+                                                          //   }
+                                                          // }
+                                                        } else {
+                                                          // if (isPasscodeExist) {
+                                                          //   Twl.navigateTo(
+                                                          //       context,
+                                                          //       EnterYourPasscode(
+                                                          //           type: GoldType().Sell,
+                                                          //           amount: widget.price));
+                                                          // } else {
+                                                          Twl.navigateTo(
+                                                              context,
+                                                              PaymentBankMethods(
+                                                                  amount:
+                                                                      buyingPrice));
+                                                          // var cashModeRes =
+                                                          //     await OrderAPI().CashMode(context);
+                                                          // print(cashModeRes);
+                                                          // if (cashModeRes != null &&
+                                                          //     cashModeRes['status'] == "OK") {
+                                                          //   Twl.navigateTo(context,
+                                                          //       PurchesedConfirmSucessful());
+                                                          // } else {
+                                                          //   Twl.createAlert(context, 'error',
+                                                          //       cashModeRes['error']);
+                                                          // }
+                                                          // }
+                                                        }
+
+                                                        // } else {
+                                                        //   stopLoading();
+                                                        //   Twl.createAlert(context, 'error', res["error"]);
+                                                        // }
+                                                        loader(false);
+
+                                                        await analytics
+                                                            .logEvent(
+                                                          name:
+                                                              "payment_summary",
+                                                          parameters: {
+                                                            "phy_gold_quantity":
+                                                                "${buyingQty.toString()} g",
+                                                            "phy_gold_price":
+                                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                            "fees":
+                                                                "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                            "total_price":
+                                                                "${Secondarycurrency + buyingPrice}",
+                                                            "button_clicked":
+                                                                true,
+                                                          },
+                                                        );
+
+                                                        Segment.track(
+                                                          eventName:
+                                                              'payment_summary',
+                                                          properties: {
+                                                            "phy_gold_quantity":
+                                                                "${buyingQty.toString()} g",
+                                                            "phy_gold_price":
+                                                                "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                            "fees":
+                                                                "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                            "total_price":
+                                                                "${Secondarycurrency + buyingPrice}",
+                                                            "clicked": true
+                                                          },
+                                                        );
+
+                                                        mixpanel.track(
+                                                            'payment_summary',
+                                                            properties: {
+                                                              "phy_gold_quantity":
+                                                                  "${buyingQty.toString()} g",
+                                                              "phy_gold_price":
+                                                                  "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                              "fees":
+                                                                  "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                              "total_price":
+                                                                  "${Secondarycurrency + buyingPrice}",
+                                                              "button_clicked":
+                                                                  true,
+                                                            });
+
+                                                        await logEvent(
+                                                            "payment_summary", {
+                                                          "phy_gold_quantity":
+                                                              "${buyingQty.toString()} g",
+                                                          "phy_gold_price":
+                                                              "${Secondarycurrency + (double.parse(buyingQty) * goldprice).toStringAsFixed(2)} ",
+                                                          "fees":
+                                                              "${Secondarycurrency + (double.parse(widget.price) - (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}",
+                                                          "total_price":
+                                                              "${Secondarycurrency + buyingPrice}",
+                                                          "button_clicked":
+                                                              true,
+                                                        });
+                                                      },
+                                                      child: Text(
+                                                          widget.type == 1
+                                                              ? "Buy ${Secondarycurrency + ((double.parse(buyingQty) * goldprice * 0.04 * 0.027) + 0.2 + (double.parse(buyingQty) * goldprice * 0.04) + (double.parse(buyingQty) * goldprice)).toStringAsFixed(2)}"
+                                                              : "Sell ${buyingQty.toString()} grams",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  tSecondaryColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize:
+                                                                  24)))))),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          widget.type == 1
+                                              ? 'You will receive a receipt via email for your purchase'
+                                              : 'You will receive the credit from your sale within 3 business days, and a receipt has been sent to you via email ',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontFamily: "Barlow",
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: 14,
+                                            color: tSecondaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                      )
+                                    ],
                                   ),
                                 ),
-                                SizedBox(
-                                  height: 20,
-                                )
-                              ],
-                            ),
-                          ),
                         ],
                       )))),
         ),

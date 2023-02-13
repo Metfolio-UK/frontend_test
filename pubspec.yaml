@@ -115,6 +115,7 @@ flutter:
     - images/no.png
     - images/30m1.png
     - images/30m2.png
+    - images/Cal.png
     - images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
