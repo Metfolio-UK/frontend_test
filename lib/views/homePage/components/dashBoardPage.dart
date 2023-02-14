@@ -369,7 +369,6 @@ class _DashBoardPageState extends State<DashBoardPage>
       //   // finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
       //   // print(finalBuyPrice);
       // }
-
     }
     print(markupPercentage);
     var feesMarkup =
@@ -434,7 +433,7 @@ class _DashBoardPageState extends State<DashBoardPage>
   String repeat = "monthly";
   TextEditingController _priceController = TextEditingController();
   TextEditingController _qtyController = TextEditingController();
-
+  String repeatGoal = "Monthly";
   double _currentSliderValue = 1;
 
   show() {
@@ -1962,7 +1961,7 @@ class _DashBoardPageState extends State<DashBoardPage>
 
   bool loading = false;
 
-  void repeatgoal() {
+  void repeatgoal(setStates) {
     showMaterialModalBottomSheet(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -2006,13 +2005,27 @@ class _DashBoardPageState extends State<DashBoardPage>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            "Done",
-                            style: TextStyle(
-                                fontFamily: 'Barlow',
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                                color: tlightBlue),
+                          InkWell(
+                            onTap: () {
+                              setStates(() {
+                                if (repeatType == 0) {
+                                  repeatGoal = "Daily";
+                                } else if (repeatType == 1) {
+                                  repeatGoal = "Weekly";
+                                } else if (repeatType == 2) {
+                                  repeatGoal = "Monthly";
+                                }
+                              });
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              "Done",
+                              style: TextStyle(
+                                  fontFamily: 'Barlow',
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  color: tlightBlue),
+                            ),
                           ),
                         ],
                       ),
@@ -2054,7 +2067,7 @@ class _DashBoardPageState extends State<DashBoardPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Today - 23/02/2023",
+                                "Today - ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
                                 style: TextStyle(
                                     fontFamily: 'Barlow',
                                     fontSize: 14,
@@ -2266,6 +2279,8 @@ class _DashBoardPageState extends State<DashBoardPage>
       editGoalAmount = false;
       invalidEntryName = false;
       invalidEntryAmount = false;
+      repeatType = 2;
+      repeatGoal = "Monthly";
     });
     showMaterialModalBottomSheet(
       // isScrollControlled: true,
@@ -2636,42 +2651,47 @@ class _DashBoardPageState extends State<DashBoardPage>
                                         height: 4,
                                       ),
                                       if (defPaymentDeatils != null)
-                                        Row(
-                                          children: [
-                                            Image.asset(
-                                              getcardType(defPaymentDeatils[
-                                                          'card']['wallet'] !=
-                                                      null
-                                                  ? defPaymentDeatils['card']
-                                                      ['wallet']['type']
-                                                  : ''),
-                                              width: 30,
-                                            ),
-                                            SizedBox(
-                                              width: 4,
-                                            ),
-                                            Text(
-                                              getcardTypeName(defPaymentDeatils[
-                                                          'card']['wallet'] !=
-                                                      null
-                                                  ? defPaymentDeatils['card']
-                                                      ['wallet']['type']
-                                                  : ''),
-                                              style: TextStyle(
-                                                  fontFamily: 'Barlow',
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(
-                                              width: 4,
-                                            ),
-                                            InkWell(
-                                              child: Image.asset(
-                                                "images/down.png",
-                                                width: 12,
+                                        GestureDetector(
+                                          onTap: () {},
+                                          child: Row(
+                                            children: [
+                                              Image.asset(
+                                                getcardType(defPaymentDeatils[
+                                                            'card']['wallet'] !=
+                                                        null
+                                                    ? defPaymentDeatils['card']
+                                                        ['wallet']['type']
+                                                    : ''),
+                                                width: 30,
                                               ),
-                                            )
-                                          ],
+                                              SizedBox(
+                                                width: 4,
+                                              ),
+                                              Text(
+                                                getcardTypeName(
+                                                    defPaymentDeatils['card']
+                                                                ['wallet'] !=
+                                                            null
+                                                        ? defPaymentDeatils[
+                                                            'card']['type']
+                                                        : ''),
+                                                style: TextStyle(
+                                                    fontFamily: 'Barlow',
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              SizedBox(
+                                                width: 4,
+                                              ),
+                                              InkWell(
+                                                child: Image.asset(
+                                                  "images/down.png",
+                                                  width: 12,
+                                                ),
+                                              )
+                                            ],
+                                          ),
                                         )
                                     ],
                                   ),
@@ -2690,7 +2710,9 @@ class _DashBoardPageState extends State<DashBoardPage>
                                         height: 4,
                                       ),
                                       InkWell(
-                                        onTap: repeatgoal,
+                                        onTap: () {
+                                          repeatgoal(setStates);
+                                        },
                                         child: Row(
                                           children: [
                                             Image.asset(
@@ -2701,7 +2723,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                                               width: 4,
                                             ),
                                             Text(
-                                              "Monthly on 23rd",
+                                              getDateExt(
+                                                  DateTime.now(), repeatGoal),
                                               style: TextStyle(
                                                   fontFamily: 'Barlow',
                                                   fontSize: 14,
@@ -3699,7 +3722,7 @@ class _DashBoardPageState extends State<DashBoardPage>
                                             Container(
                                               child: Image.asset(
                                                   "assets/icons/newgoal.png",
-                                                  width: 35),
+                                                  width: 40),
                                             ),
                                             SizedBox(
                                               height: 24,
@@ -4404,5 +4427,36 @@ _getColorFromHex(String hexColor) {
   }
   if (hexColor.length == 8) {
     return Color(int.parse("0x$hexColor"));
+  }
+}
+
+getDateExt(DateTime day, String rg) {
+  if (rg == "Daily")
+    return "Daily";
+  else if (rg == "Weekly") {
+    var dates = "";
+    if (day.weekday == 1)
+      dates = "Monday";
+    else if (day.weekday == 2)
+      dates = "Tuesday";
+    else if (day.weekday == 3)
+      dates = "Wednesday";
+    else if (day.weekday == 4)
+      dates = "Thrusday";
+    else if (day.weekday == 5)
+      dates = "Friday";
+    else if (day.weekday == 6)
+      dates = "Saturday";
+    else if (day.weekday == 7) dates = "Sunday";
+    return "Weekly on ${dates}";
+  } else if (rg == "Monthly") {
+    if (day.day % 10 == 1)
+      return "Monthly on ${day.day}st";
+    else if (day.day % 10 == 2)
+      return "Monthly on ${day.day}nd";
+    else if (day.day % 10 == 3)
+      return "Monthly on ${day.day}rd";
+    else
+      return "Monthly on ${day.day}th";
   }
 }

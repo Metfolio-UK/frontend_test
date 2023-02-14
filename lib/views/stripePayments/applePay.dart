@@ -33,12 +33,12 @@ class _ApplePayScreenState extends State<ApplePayScreen> {
     return Column(
       children: [
         // ignore: deprecated_member_use
-        if (Stripe.instance.isApplePaySupported.value)
-          ApplePayButton(
-            onPressed: _handlePayPress,
-          )
-        else
-          Text('Apple Pay is not available in this device'),
+        // if (Stripe.instance.isApplePaySupported.value)
+        //   ApplePayButton(
+        //     onPressed: _handlePayPress,
+        //   )
+        // else
+        Text('Apple Pay is not available in this device'),
       ],
     );
   }

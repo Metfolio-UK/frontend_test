@@ -583,113 +583,83 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                     if (signUpRes['status'] == 'OK' &&
                                         signUpRes != null) {
                                       if (widget.isLoadingFlow == true) {
-                                        var emailRes = await UserAPI()
-                                            .sendEmailOtp(
-                                                context, emailId.toString());
-                                        print('emailRes>>>>>>>>>>>>>');
-                                        print(emailRes);
-                                        if (emailRes != null &&
-                                            emailRes['status'] == 'OK') {
-                                          var otpcode = emailRes['details']
-                                              ['user_details']['email_otp'];
-                                          SharedPreferences sharedPrefs =
-                                              await SharedPreferences
-                                                  .getInstance();
-                                          var authCode =
-                                              sharedPrefs.getString('authCode');
+                                        // var emailRes = await UserAPI()
+                                        //     .sendEmailOtp(
+                                        //         context, emailId.toString());
+                                        // print('emailRes>>>>>>>>>>>>>');
+                                        // print(emailRes);
+                                        // if (true) {
 
-                                          var check = await UserAPI().checkApi(
-                                              sharedPrefs
-                                                  .getString('authCode'));
-                                          print("authCode>>>>> " +
-                                              authCode.toString());
-                                          print(check);
-                                          print("CheckAuthcode");
-                                          if (check != null &&
-                                              check['status'] == 'OK') {
-                                            // setState(() {
-                                            sharedPrefs.setString(
-                                                'userId',
-                                                check['detail']['userId']
-                                                    .toString());
-                                            sharedPrefs.setString('emailId',
-                                                check['detail']['email']);
+                                        // }
+                                        // var otpcode = emailRes['details']
+                                        //     ['user_details']['email_otp'];
+                                        SharedPreferences sharedPrefs =
+                                            await SharedPreferences
+                                                .getInstance();
+                                        var authCode =
+                                            sharedPrefs.getString('authCode');
 
-                                            sharedPrefs.setString(
-                                                'stripePublicKey',
-                                                check['detail']
-                                                    ['stripe_publishable_key']);
-                                            sharedPrefs.setString(
-                                                'stripesecretKey',
-                                                check['detail']
-                                                    ['stripe_secret_Key']);
-                                            print(otpcode);
-                                            // stopLoading();
-                                            startLoader(false);
-                                            Twl.navigateTo(
-                                                context,
-                                                EmailVerification(
-                                                  firstName: firstName,
-                                                  lastName: lastName,
-                                                  emailId: emailId,
-                                                  selectedDate: selectedDate,
-                                                  // otp: otpcode
-                                                ));
+                                        var check = await UserAPI().checkApi(
+                                            sharedPrefs.getString('authCode'));
+                                        print("authCode>>>>> " +
+                                            authCode.toString());
+                                        print(check);
+                                        print("CheckAuthcode");
+                                        if (check != null &&
+                                            check['status'] == 'OK') {
+                                          // setState(() {
+                                          sharedPrefs.setString(
+                                              'userId',
+                                              check['detail']['userId']
+                                                  .toString());
+                                          sharedPrefs.setString('emailId',
+                                              check['detail']['email']);
 
-                                            await analytics.logEvent(
-                                              name: "personal_details",
-                                              parameters: {
-                                                'email': emailId,
-                                                'firstName': firstName,
-                                                'lastName': lastName,
-                                                'phone': sharedPrefs
-                                                    .getString('userName'),
-                                                "date_of_birth": selectedDate,
-                                                "button_clicked": true,
-                                              },
-                                            );
+                                          sharedPrefs.setString(
+                                              'stripePublicKey',
+                                              check['detail']
+                                                  ['stripe_publishable_key']);
+                                          sharedPrefs.setString(
+                                              'stripesecretKey',
+                                              check['detail']
+                                                  ['stripe_secret_Key']);
+                                          // print(otpcode);
+                                          // stopLoading();
+                                          startLoader(false);
+                                          // Twl.navigateTo(
+                                          //     context,
+                                          //     EmailVerification(
+                                          //       firstName: firstName,
+                                          //       lastName: lastName,
+                                          //       emailId: emailId,
+                                          //       selectedDate: selectedDate,
+                                          //       // otp: otpcode
+                                          //     ));
+                                          Twl.navigateTo(
+                                              context,
+                                              HomeAddress(
+                                                firstName: firstName,
+                                                // lastName: widget.lastName,
+                                                // email: widget.emailId,
+                                                // dob: widget.selectedDate,
+                                                isLoginFlow: true,
+                                              ));
+                                          await analytics.logEvent(
+                                            name: "personal_details",
+                                            parameters: {
+                                              'email': emailId,
+                                              'firstName': firstName,
+                                              'lastName': lastName,
+                                              'phone': sharedPrefs
+                                                  .getString('userName'),
+                                              "date_of_birth": selectedDate,
+                                              "button_clicked": true,
+                                            },
+                                          );
 
-                                            Segment.track(
-                                              eventName: 'PersonalDetails',
-                                              properties: {
-                                                'email': emailId,
-                                                'companyName': 'Metfolio',
-                                                'firstName': firstName,
-                                                'lastName': lastName,
-                                                'phone': sharedPrefs
-                                                    .getString('userName'),
-                                                'streetAddress': 'streetName',
-                                                'city': 'cityName',
-                                                'state': 'stateName',
-                                                'country': 'counName',
-                                                'website':
-                                                    'https://www.google.com',
-                                                'postalCode': '123456',
-                                                'clicked': true,
-                                              },
-                                            );
-
-                                            mixpanel.track(
-                                              'PersonalDetails',
-                                              properties: {
-                                                'email': emailId,
-                                                'companyName': 'Metfolio',
-                                                'firstName': firstName,
-                                                'lastName': lastName,
-                                                'phone': sharedPrefs
-                                                    .getString('userName'),
-                                                'streetAddress': 'streetName',
-                                                'city': 'cityName',
-                                                'state': 'stateName',
-                                                'country': 'counName',
-                                                'website':
-                                                    'https://www.google.com',
-                                                'postalCode': '123456',
-                                                'clicked': true,
-                                              },
-                                            );
-
-                                            await logEvent("PersonalDetails", {
+                                          Segment.track(
+                                            eventName: 'PersonalDetails',
+                                            properties: {
                                               'email': emailId,
                                               'companyName': 'Metfolio',
                                               'firstName': firstName,
@@ -704,13 +674,44 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                                   'https://www.google.com',
                                               'postalCode': '123456',
                                               'clicked': true,
-                                            });
-                                          }
-                                        } else {
-                                          // stopLoading();
-                                          startLoader(false);
-                                          // Twl.createAlert(context, 'error',
-                                          //     emailRes['error']);
+                                            },
+                                          );
+
+                                          mixpanel.track(
+                                            'PersonalDetails',
+                                            properties: {
+                                              'email': emailId,
+                                              'companyName': 'Metfolio',
+                                              'firstName': firstName,
+                                              'lastName': lastName,
+                                              'phone': sharedPrefs
+                                                  .getString('userName'),
+                                              'streetAddress': 'streetName',
+                                              'city': 'cityName',
+                                              'state': 'stateName',
+                                              'country': 'counName',
+                                              'website':
+                                                  'https://www.google.com',
+                                              'postalCode': '123456',
+                                              'clicked': true,
+                                            },
+                                          );
+
+                                          await logEvent("PersonalDetails", {
+                                            'email': emailId,
+                                            'companyName': 'Metfolio',
+                                            'firstName': firstName,
+                                            'lastName': lastName,
+                                            'phone': sharedPrefs
+                                                .getString('userName'),
+                                            'streetAddress': 'streetName',
+                                            'city': 'cityName',
+                                            'state': 'stateName',
+                                            'country': 'counName',
+                                            'website': 'https://www.google.com',
+                                            'postalCode': '123456',
+                                            'clicked': true,
+                                          });
                                         }
                                       } else {
                                         startLoader(false);
