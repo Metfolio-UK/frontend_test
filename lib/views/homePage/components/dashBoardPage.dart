@@ -40,6 +40,7 @@ import '../../nameyourgoal/GoalAmount.dart';
 import '../../profilePage/profilePage.dart';
 import '../../veriffPage/veriffPage.dart';
 import 'goals.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 // ignore: must_be_immutable
 class DashBoardPage extends StatefulWidget {
@@ -2264,7 +2265,7 @@ class _DashBoardPageState extends State<DashBoardPage>
     );
   }
 
-  void editgoal() {
+  void editgoal() async {
     // getGoalData();
     print("myGoalDetails--->" + myGoalDetails.toString());
     goalNameController.text = myGoalDetails['details']['name_of_goal'];

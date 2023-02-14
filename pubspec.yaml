@@ -72,6 +72,7 @@ dependencies:
   appsflyer_sdk: ^6.9.3
   loading_icon_button:
   sticky_headers: ^0.3.0+2
+  in_app_review: ^2.0.6
 
 dev_dependencies:
   flutter_test:

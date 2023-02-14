@@ -64,7 +64,7 @@ class VerifiedSucessful extends StatelessWidget {
                     ),
                     Center(
                       child: Text(
-                        ' Your identity is verified!',
+                        'Your identity is verified!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: tSecondaryColor,

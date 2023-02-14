@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../constants/constants.dart';
@@ -17,6 +18,8 @@ class DeliverySucessful extends StatefulWidget {
 }
 
 class _DeliverySucessfulState extends State<DeliverySucessful> {
+  final InAppReview inAppReview = InAppReview.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,9 +117,12 @@ class _DeliverySucessfulState extends State<DeliverySucessful> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         elevation: 0,
-        onPressed: () {
+        onPressed: () async {
           Twl.navigateTo(
               context, BottomNavigation(tabIndexId: 0, actionIndex: 0));
+          if (await inAppReview.isAvailable()) {
+            inAppReview.requestReview();
+          }
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         label: Container(
