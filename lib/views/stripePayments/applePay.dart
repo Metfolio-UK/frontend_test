@@ -32,6 +32,7 @@ class _ApplePayScreenState extends State<ApplePayScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // ignore: deprecated_member_use
         if (Stripe.instance.isApplePaySupported.value)
           ApplePayButton(
             onPressed: _handlePayPress,
