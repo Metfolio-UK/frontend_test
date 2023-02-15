@@ -114,6 +114,7 @@ class _MovedSucessfulState extends State<MovedSucessful> {
           if (await inAppReview.isAvailable()) {
             inAppReview.requestReview();
           }
+          //In app review for andriod and ios
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         label: Container(
