@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../constants/constants.dart';
@@ -17,6 +18,8 @@ class ChangesSavedSucessful extends StatefulWidget {
 }
 
 class _ChangesSavedSucessfulState extends State<ChangesSavedSucessful> {
+  final InAppReview inAppReview = InAppReview.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,8 +106,17 @@ class _ChangesSavedSucessfulState extends State<ChangesSavedSucessful> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         elevation: 0,
-        onPressed: () {
-          Twl.navigateTo(context, BottomNavigation(actionIndex: 0,tabIndexId: 0,));
+        onPressed: () async {
+          Twl.navigateTo(
+              context,
+              BottomNavigation(
+                actionIndex: 0,
+                tabIndexId: 0,
+              ));
+          if (await inAppReview.isAvailable()) {
+            inAppReview.requestReview();
+          }
+          //In app review for andriod and ios
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         label: Container(

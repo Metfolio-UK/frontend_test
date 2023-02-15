@@ -2,6 +2,7 @@ import 'package:base_project_flutter/main.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_segment/flutter_segment.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../constants/constants.dart';
@@ -21,6 +22,8 @@ class PurchesedConfirmSucessful extends StatefulWidget {
 }
 
 class _PurchesedConfirmSucessfulState extends State<PurchesedConfirmSucessful> {
+  final InAppReview inAppReview = InAppReview.instance;
+
   void initState() {
     super.initState();
 
@@ -145,13 +148,17 @@ class _PurchesedConfirmSucessfulState extends State<PurchesedConfirmSucessful> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         elevation: 0,
-        onPressed: () {
+        onPressed: () async {
           Twl.navigateTo(
               context,
               BottomNavigation(
                 actionIndex: 0,
                 tabIndexId: 0,
               ));
+          if (await inAppReview.isAvailable()) {
+            inAppReview.requestReview();
+          }
+          //In app review for andriod and ios
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         label: Container(
