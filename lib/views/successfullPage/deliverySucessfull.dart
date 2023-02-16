@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../constants/constants.dart';
@@ -120,8 +121,25 @@ class _DeliverySucessfulState extends State<DeliverySucessful> {
         onPressed: () async {
           Twl.navigateTo(
               context, BottomNavigation(tabIndexId: 0, actionIndex: 0));
-          if (await inAppReview.isAvailable()) {
-            inAppReview.requestReview();
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+          var count = sharedPreferences.getString("app_review").toString();
+          if (count == null) {
+            sharedPreferences.setString('app_review', '1');
+            if (await inAppReview.isAvailable()) {
+              inAppReview.requestReview();
+            }
+          } else {
+            var curCount = int.parse(count);
+            curCount += 1;
+
+            if (int.parse(count) % 10 == 0) {
+              if (await inAppReview.isAvailable()) {
+                inAppReview.requestReview();
+              }
+            }
+
+            sharedPreferences.setString('app_review', curCount.toString());
           }
           //In app review for andriod and ios
         },
