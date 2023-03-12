@@ -401,6 +401,7 @@ class _DeliverPageState extends State<DeliverPage> {
         return DeliveryFromBottomSheet(
           selectDelivery: selectDeliverFrom,
           title: 'Deliver from:',
+          selected: deliverFromValue,
         );
       },
     );

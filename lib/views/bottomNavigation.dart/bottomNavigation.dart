@@ -329,11 +329,11 @@ class _BottomNavigationState extends State<BottomNavigation>
                     naviagte: _onItemTapped,
                     homeindex: widget.homeindex ?? 0,
                   ),
-                  /*    ActionsPage(
+                  ActionsPage(
                     actionIndex: widget.actionIndex,
                     laoder: loader,
-                  ),*/
-                  Extra2(),
+                  ),
+                  // Extra2(),
                   // ApplePayScreen(),
                   // GooglePayScreen(),
                   // CustomCardPaymentScreen(),
@@ -395,7 +395,7 @@ class _BottomNavigationState extends State<BottomNavigation>
                 BottomNavigationImages.ACTIONS,
                 height: 4.h,
               ),
-              label: 'Invest',
+              label: 'Actions',
             ),
             _bottomNavigationBarItem(
               icon: Image.asset(

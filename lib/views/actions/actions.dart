@@ -175,7 +175,8 @@ class _ActionsPageState extends State<ActionsPage>
                 ),
                 Expanded(
                   child: Container(
-                    child: TabBarView(physics: NeverScrollableScrollPhysics(),
+                    child: TabBarView(
+                        physics: NeverScrollableScrollPhysics(),
                         // controller: _tabController,
                         children: [
                           BuyAndSell(
