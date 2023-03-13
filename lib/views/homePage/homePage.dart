@@ -112,13 +112,13 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: tWhite,
-      // body: Container(
-      //   height: double.infinity,
-      //   child: DashBoardPage(
-      //     navigate: widget.naviagte,
-      //     innerNavvigate: _onTabTapped,
-      //   ),
-      // ),
+      body: Container(
+        height: double.infinity,
+        child: DashBoardPage(
+          navigate: widget.naviagte,
+          innerNavvigate: _onTabTapped,
+        ),
+      ),
       // body: NestedScrollView(
       //   controller: _scrollController,
       //   headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -188,132 +188,132 @@ class _HomePageState extends State<HomePage>
       //   //   innerNavvigate: _onTabTapped,
       //   // ),
       // ),
-      body: DefaultTabController(
-        initialIndex: tabIndex,
-        length: 3,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 3.h,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          "Hi ${firstname?[0].toUpperCase() ?? ''}${firstname?.substring(1) ?? ''}👋",
-                          style: TextStyle(
-                              fontFamily: 'Barlow',
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold),
-                        )
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Twl.navigateTo(context, ProfilePage());
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                            border: Border.all(color: tPrimaryColor),
-                            shape: BoxShape.circle),
-                        child: Text(
-                            (firstname != null && lastName != null)
-                                ? (firstname[0].toUpperCase() ?? '') +
-                                    (lastName[0].toUpperCase() ?? '')
-                                : '',
-                            style: TextStyle(
-                                color: tSecondaryColor,
-                                fontFamily: 'Barlow',
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 2.h,
-              ),
-              Theme(
-                data: ThemeData(
-                  highlightColor: Colors.white,
-                  splashColor: Colors.white,
-                  backgroundColor: Colors.white,
-                ),
-                child: Container(
-                  color: Colors.transparent,
-                  child: TabBar(
-                    overlayColor: MaterialStateProperty.all<Color>(tBackground),
-                    controller: controller,
-                    indicator: BoxDecoration(
-                      color: tIndicatorColor,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(5),
-                      ),
-                    ),
-                    indicatorPadding: EdgeInsets.only(top: 36, bottom: 9),
-                    isScrollable: true,
-                    labelColor: tSecondaryColor,
-                    labelStyle: TextStyle(
-                        fontFamily: "Barlow",
-                        color: tWhite,
-                        fontSize: isTab(context) ? 11.sp : 14.sp,
-                        fontWeight: FontWeight.bold),
-                    unselectedLabelColor: tSecondaryColor,
-                    unselectedLabelStyle: TextStyle(
-                        color: tWhite,
-                        fontFamily: "Barlow",
-                        fontSize: isTab(context) ? 11.sp : 14.sp,
-                        fontWeight: FontWeight.bold),
-                    indicatorWeight: 8,
-                    onTap: (index) {
-                      _onTabTapped(index);
-                    },
-                    tabs: [
-                      Tab(
-                        text: "Dashboard",
-                      ),
-                      Tab(
-                        text: "Accounts",
-                      ),
-                      Tab(
-                        text: "Goals",
-                      )
-                    ],
-                    indicatorSize: TabBarIndicatorSize.label,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  child: TabBarView(
-                    physics: NeverScrollableScrollPhysics(),
-                    controller: controller,
-                    children: [
-                      DashBoardPage(
-                        navigate: widget.naviagte,
-                        innerNavvigate: _onTabTapped,
-                      ),
-                      AccountPage(),
-                      GoalsPage(),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      // body: DefaultTabController(
+      //   initialIndex: tabIndex,
+      //   length: 3,
+      //   child: Padding(
+      //     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 20),
+      //     child: Column(
+      //       crossAxisAlignment: CrossAxisAlignment.start,
+      //       mainAxisAlignment: MainAxisAlignment.start,
+      //       children: [
+      //         SizedBox(
+      //           height: 3.h,
+      //         ),
+      //         Padding(
+      //           padding: const EdgeInsets.symmetric(horizontal: 16),
+      //           child: Row(
+      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //             crossAxisAlignment: CrossAxisAlignment.end,
+      //             children: [
+      //               Row(
+      //                 children: [
+      //                   Text(
+      //                     "Hi ${firstname?[0].toUpperCase() ?? ''}${firstname?.substring(1) ?? ''}👋",
+      //                     style: TextStyle(
+      //                         fontFamily: 'Barlow',
+      //                         fontSize: 28,
+      //                         fontWeight: FontWeight.bold),
+      //                   )
+      //                 ],
+      //               ),
+      //               GestureDetector(
+      //                 onTap: () {
+      //                   Twl.navigateTo(context, ProfilePage());
+      //                 },
+      //                 child: Container(
+      //                   padding: EdgeInsets.all(8),
+      //                   decoration: BoxDecoration(
+      //                       border: Border.all(color: tPrimaryColor),
+      //                       shape: BoxShape.circle),
+      //                   child: Text(
+      //                       (firstname != null && lastName != null)
+      //                           ? (firstname[0].toUpperCase() ?? '') +
+      //                               (lastName[0].toUpperCase() ?? '')
+      //                           : '',
+      //                       style: TextStyle(
+      //                           color: tSecondaryColor,
+      //                           fontFamily: 'Barlow',
+      //                           fontSize: 9.sp,
+      //                           fontWeight: FontWeight.bold)),
+      //                 ),
+      //               )
+      //             ],
+      //           ),
+      //         ),
+      //         SizedBox(
+      //           height: 2.h,
+      //         ),
+      //         Theme(
+      //           data: ThemeData(
+      //             highlightColor: Colors.white,
+      //             splashColor: Colors.white,
+      //             backgroundColor: Colors.white,
+      //           ),
+      //           child: Container(
+      //             color: Colors.transparent,
+      //             child: TabBar(
+      //               overlayColor: MaterialStateProperty.all<Color>(tBackground),
+      //               controller: controller,
+      //               indicator: BoxDecoration(
+      //                 color: tIndicatorColor,
+      //                 borderRadius: BorderRadius.all(
+      //                   Radius.circular(5),
+      //                 ),
+      //               ),
+      //               indicatorPadding: EdgeInsets.only(top: 36, bottom: 9),
+      //               isScrollable: true,
+      //               labelColor: tSecondaryColor,
+      //               labelStyle: TextStyle(
+      //                   fontFamily: "Barlow",
+      //                   color: tWhite,
+      //                   fontSize: isTab(context) ? 11.sp : 14.sp,
+      //                   fontWeight: FontWeight.bold),
+      //               unselectedLabelColor: tSecondaryColor,
+      //               unselectedLabelStyle: TextStyle(
+      //                   color: tWhite,
+      //                   fontFamily: "Barlow",
+      //                   fontSize: isTab(context) ? 11.sp : 14.sp,
+      //                   fontWeight: FontWeight.bold),
+      //               indicatorWeight: 8,
+      //               onTap: (index) {
+      //                 _onTabTapped(index);
+      //               },
+      //               tabs: [
+      //                 Tab(
+      //                   text: "Dashboard",
+      //                 ),
+      //                 Tab(
+      //                   text: "Accounts",
+      //                 ),
+      //                 Tab(
+      //                   text: "Goals",
+      //                 )
+      //               ],
+      //               indicatorSize: TabBarIndicatorSize.label,
+      //             ),
+      //           ),
+      //         ),
+      //         Expanded(
+      //           child: Container(
+      //             child: TabBarView(
+      //               physics: NeverScrollableScrollPhysics(),
+      //               controller: controller,
+      //               children: [
+      //                 DashBoardPage(
+      //                   navigate: widget.naviagte,
+      //                   innerNavvigate: _onTabTapped,
+      //                 ),
+      //                 AccountPage(),
+      //                 GoalsPage(),
+      //               ],
+      //             ),
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

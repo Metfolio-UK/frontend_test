@@ -26,7 +26,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late PageController _pageController;
-
+  bool isSignUp = true;
   List<String> images = [
     "https://images.wallpapersden.com/image/download/purple-sunrise-4k-vaporwave_bGplZmiUmZqaraWkpJRmbmdlrWZlbWU.jpg",
     "https://wallpaperaccess.com/full/2637581.jpg",
@@ -179,15 +179,28 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
             backgroundColor: bgcolor(),
             body: Center(
-              child: Column(
+              child: ListView(
+                // shrinkWrap: true,
                 children: <Widget>[
-                  Container(color: _getColorFromHex("#F9DDA5"), height: 70),
+                  Container(color: _getColorFromHex("#F9DDA5"), height: 40),
+                  // Container(
+                  //     width: MediaQuery.of(context).size.width,
+                  //     color: _getColorFromHex("#F9DDA5"),
+                  //     child: Image.asset('images/logo.png',
+                  //         height: 26, width: 171)),
                   Container(
                       width: MediaQuery.of(context).size.width,
                       color: _getColorFromHex("#F9DDA5"),
-                      child: Image.asset('images/logo.png',
-                          height: 26, width: 171)),
-                  Container(color: _getColorFromHex("#F9DDA5"), height: 40),
+                      child: Text(
+                          isSignUp
+                              ? "Create your\nMetfolio account!"
+                              : "Log into your\nMetfolio Account",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 36,
+                              fontFamily: 'Barlow'))),
+                  Container(color: _getColorFromHex("#F9DDA5"), height: 8),
                   /*     ClipPath(
                   clipper: ShapeClipper(),
                   child:*/
@@ -208,88 +221,238 @@ class _MyHomePageState extends State<MyHomePage> {
                         }),
                   ),
                   //   ),
-                  Container(height: 30),
+                  Container(height: 16),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: indicators(car.length, activePage)),
-                  Container(height: 50),
+                  Container(height: 32),
 
                   Column(children: [
+                    isSignUp
+                        ? Container(
+                            height: 40,
+                            width: 250,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 0,
+                                  primary: _getColorFromHex("#2AB2BC"),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () async {
+                                  Twl.navigateTo(context, LoginMobileNumber());
+
+                                  await analytics.logEvent(
+                                    name: "signup_button_clicked",
+                                    parameters: {
+                                      "button_clicked": true,
+                                    },
+                                  );
+
+                                  Segment.track(
+                                    eventName: 'Signup_Button',
+                                    properties: {"clicked": true},
+                                  );
+
+                                  mixpanel.track('signup_button_clicked',
+                                      properties: {
+                                        "button_clicked": true,
+                                      });
+
+                                  await logEvent("signup_button_clicked",
+                                      {"clicked": true});
+                                },
+                                child: Text("Sign up with SMS",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Barlow',
+                                        fontSize: 20))))
+                        : Container(
+                            height: 40,
+                            width: 250,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 0,
+                                  primary: _getColorFromHex("#2AB2BC"),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () async {
+                                  Twl.navigateTo(context, LoginMobileNumber1());
+
+                                  await analytics.logEvent(
+                                    name: "login_button_clicked",
+                                    parameters: {
+                                      "button_clicked": true,
+                                    },
+                                  );
+
+                                  Segment.track(
+                                    eventName: 'Login_Button',
+                                    properties: {"clicked": true},
+                                  );
+
+                                  mixpanel.track('login_button_clicked',
+                                      properties: {
+                                        "button_clicked": true,
+                                      });
+
+                                  await logEvent("login_button_clicked",
+                                      {"clicked": true});
+                                },
+                                child: Text("Continue with SMS",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Barlow',
+                                        fontSize: 20)))),
+                    Container(
+                      height: 16,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          color: Colors.black,
+                          height: 2,
+                          width: 90,
+                        ),
+                        Text("  OR  ",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Signika',
+                                fontSize: 20)),
+                        Container(
+                          color: Colors.black,
+                          height: 2,
+                          width: 90,
+                        ),
+                      ],
+                    ),
+                    Container(
+                      height: 16,
+                    ),
                     Container(
                         height: 40,
-                        width: 230,
+                        width: 250,
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              primary: _getColorFromHex("#E5B02C"),
+                              elevation: 1,
+                              primary: Colors.white,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () async {
-                              Twl.navigateTo(context, LoginMobileNumber());
+                              // Twl.navigateTo(context, LoginMobileNumber1());
 
                               await analytics.logEvent(
-                                name: "signup_button_clicked",
+                                name: "Login_with_google_button_clicked",
                                 parameters: {
                                   "button_clicked": true,
                                 },
                               );
 
                               Segment.track(
-                                eventName: 'Signup_Button',
+                                eventName: 'Login_with_google_button',
                                 properties: {"clicked": true},
                               );
 
-                              mixpanel
-                                  .track('signup_button_clicked', properties: {
-                                "button_clicked": true,
-                              });
+                              mixpanel.track('Login_with_google_button_clicked',
+                                  properties: {
+                                    "button_clicked": true,
+                                  });
 
-                              await logEvent(
-                                  "signup_button_clicked", {"clicked": true});
+                              await logEvent("Login_with_google_button_clicked",
+                                  {"clicked": true});
                             },
-                            child: Text("Sign up",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24)))),
-                    Container(height: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'images/google_logo.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                SizedBox(
+                                  width: 15,
+                                ),
+                                Text("Continue with Google",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: 'Roboto',
+                                        color: Colors.black,
+                                        fontSize: 20)),
+                              ],
+                            ))),
+                    Container(
+                      height: 10,
+                    ),
                     Container(
                         height: 40,
-                        width: 230,
+                        width: 250,
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              primary: _getColorFromHex("#E5B02C"),
+                              elevation: 1,
+                              primary: Colors.black,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () async {
-                              Twl.navigateTo(context, LoginMobileNumber1());
+                              // Twl.navigateTo(context, LoginMobileNumber1());
 
                               await analytics.logEvent(
-                                name: "login_button_clicked",
+                                name: "Login_with_apple_button_clicked",
                                 parameters: {
                                   "button_clicked": true,
                                 },
                               );
 
                               Segment.track(
-                                eventName: 'Login_Button',
+                                eventName: 'Login_with_apple_button',
                                 properties: {"clicked": true},
                               );
 
-                              mixpanel
-                                  .track('login_button_clicked', properties: {
-                                "button_clicked": true,
-                              });
+                              mixpanel.track('Login_with_apple_button_clicked',
+                                  properties: {
+                                    "button_clicked": true,
+                                  });
 
-                              await logEvent(
-                                  "login_button_clicked", {"clicked": true});
+                              await logEvent("Login_with_apple_button_clicked",
+                                  {"clicked": true});
                             },
-                            child: Text("Login",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24))))
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'images/apple_logo.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                SizedBox(
+                                  width: 15,
+                                ),
+                                Text("Continue with Apple",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: 'Roboto',
+                                        fontSize: 20)),
+                              ],
+                            ))),
+                    Container(
+                      height: 16,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isSignUp = !isSignUp;
+                        });
+                      },
+                      child: Text(isSignUp ? "Log in" : 'Sign Up',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'Signika',
+                              color: Colors.black,
+                              fontSize: 20)),
+                    ),
                   ]),
                 ],
               ),
