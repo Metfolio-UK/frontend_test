@@ -289,19 +289,25 @@ class _LockScreenState extends State<LockScreen> {
                     Twl.willpopAlert(context);
                   }
                 },
-                child: Padding(
-                  padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: selectedvalue == 1 ? btnColor : tWhite,
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Image.asset(
-                      Images.NAVBACK,
-                      scale: 4,
-                    ),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: selectedvalue == 1 ? btnColor : tWhite,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Image.asset(
+                    Images.NAVBACK,
+                    color: Color(0xff57B0BA),
+                    scale: 4,
                   ),
                 ),
               ),
+              titleSpacing: 0,
+              centerTitle: false,
+              title: Text("Passcode",
+                  style: TextStyle(
+                      color: Color(0xff57B0BA),
+                      fontFamily: 'Signika',
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w700)),
             ),
             body: SingleChildScrollView(
               child: Column(
@@ -315,31 +321,32 @@ class _LockScreenState extends State<LockScreen> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Center(
-                              child: Text(
-                                "Passcode lock",
-                                style: TextStyle(
-                                    fontFamily: 'signika',
-                                    color: tPrimaryColor,
-                                    fontSize: 20.sp,
-                                    fontWeight: FontWeight.w500
-                                    // fontFamily: AppTextStyle.robotoBold
-                                    ),
-                              ),
-                            ),
-                            SizedBox(height: 60),
+                            // Center(
+                            //   child: Text(
+                            //     "Passcode lock",
+                            //     style: TextStyle(
+                            //         fontFamily: 'signika',
+                            //         color: tPrimaryColor,
+                            //         fontSize: 20.sp,
+                            //         fontWeight: FontWeight.w500
+                            //         // fontFamily: AppTextStyle.robotoBold
+                            //         ),
+                            //   ),
+                            // ),
+                            SizedBox(height: 25),
                             Center(
                               child: Text(
                                 "Enter your passcode",
                                 style: TextStyle(
                                     color: tSecondaryColor,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600
+                                    fontSize: 20.sp,
+                                    fontFamily: 'Barlow',
+                                    fontWeight: FontWeight.w700
                                     // fontFamily: AppTextStyle.robotoBold
                                     ),
                               ),
                             ),
-                            SizedBox(height: 30),
+                            SizedBox(height: 60),
                             Padding(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 70,
@@ -472,7 +479,7 @@ class _LockScreenState extends State<LockScreen> {
                             //     }
                             //   },
                             // )s
-                            SizedBox(height: 60),
+                            SizedBox(height: 80),
                             GestureDetector(
                               onTap: () {
                                 Twl.navigateTo(context, PassCodeOtp());
@@ -488,27 +495,34 @@ class _LockScreenState extends State<LockScreen> {
                               ),
                             ),
                             SizedBox(height: 10),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 20.w, vertical: 2.h),
-                              child: Container(
-                                height: 40,
-                                width: 230,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    elevation: 0,
-                                    primary: tPrimaryColor,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 24),
+                                    child: Container(
+                                      height: 40,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          elevation: 0,
+                                          primary: Color(0xff2AB2BC),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15)),
+                                        ),
+                                        child: Text('Continue',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20.sp,
+                                                fontFamily: 'Barlow',
+                                                fontWeight: FontWeight.w700)),
+                                        onPressed: x,
+                                      ),
+                                    ),
                                   ),
-                                  child: Text('Continue',
-                                      style: TextStyle(
-                                        color: tBlue,
-                                      )),
-                                  onPressed: x,
                                 ),
-                              ),
+                              ],
                             )
                           ],
                         ),

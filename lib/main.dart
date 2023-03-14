@@ -122,8 +122,8 @@ Future<void> main() async {
   if (authCode != null) {
     var check = await UserAPI().checkApi(sharedPrefs.getString('authCode'));
     print("authCode>>>>> " + authCode);
-    print(check);
-    print("CheckAuthcode");
+    // print(check);
+    print("CheckAuthcode" + check.toString());
     if (check != null && check['status'] == 'OK') {
       // if (check['detail']['veriff_status'] == false) {
       // var res = await UserAPI().deleteUser(hardDelete);
@@ -162,7 +162,7 @@ Future<void> main() async {
       userId = check['detail']['userId'];
       verificationStatus = check['detail']['verification_status'];
       stripePublicKey = check['detail']['stripe_publishable_key'];
-      print("stripePublicKey>>>>>>>>>>");
+      print("verificationStatus>>>>>>>>>> " + verificationStatus.toString());
       print(stripePublicKey);
 
       if (check['detail']['stripe_cus_id'] != null) {
@@ -409,24 +409,20 @@ class _MyAppState extends State<MyApp> {
                     (checkAuth == null || checkAuth == '')
                         ? MyHomePage() //Splash2()
                         : (verificationStatus == 0 ||
+                                verificationStatus == 1 ||
                                 verificationStatus == null)
                             ? PersonalDetails(
                                 isLoadingFlow: true,
                               )
-                            : verificationStatus == 1
-                                ? EmailNotVerified()
-                                : verificationStatus == 2
-                                    ? HomeAddress(isLoginFlow: true)
-                                    : /*verificationStatus == 3
-                                        ? //VeriffiPage()
-                                        Extra()
-                                        :*/
-                                    isPasscodeExist
-                                        // ? VeriffStatusCheck()
-                                        ? LockScreen(navigate: false)
-                                        : CreateYourPassCode(
-                                            loginFlow: true,
-                                          ),
+                            // : verificationStatus == 3
+                            //     ? //VeriffiPage()
+                            //     Extra()
+                            : isPasscodeExist
+                                // ? VeriffStatusCheck()
+                                ? LockScreen(navigate: false)
+                                : CreateYourPassCode(
+                                    loginFlow: true,
+                                  ),
                 navigatorObservers: [
                   SegmentObserver(),
                 ]

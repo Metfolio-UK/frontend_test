@@ -16,12 +16,14 @@ class Button extends StatelessWidget {
     this.onTap,
     this.borderSide,
     this.textcolor,
+    this.textStyle,
   }) : super(key: key);
   final color;
   final String? bottonText;
   final onTap;
   final borderSide;
   final textcolor;
+  final textStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +32,18 @@ class Button extends StatelessWidget {
       child: ArgonButton(
         highlightElevation: 0,
         elevation: 0,
-        height: isTab(context) ? 70 : 45,
+        height: isTab(context) ? 70 : 40,
         width: 82.w,
         color: color,
-        borderRadius: 11,
+        borderRadius: 20,
         borderSide: borderSide,
         child: Text(
           bottonText!,
-          style: TextStyle(
-              color: tSecondaryColor,
-              fontWeight: FontWeight.w400,
-              fontSize: isTab(context) ? 9.sp : 15),
+          style: textStyle ??
+              TextStyle(
+                  color: tSecondaryColor,
+                  fontWeight: FontWeight.w400,
+                  fontSize: isTab(context) ? 9.sp : 15),
         ),
         loader: Container(
             padding: EdgeInsets.symmetric(horizontal: 10),

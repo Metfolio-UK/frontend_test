@@ -129,10 +129,10 @@ class _BuyActionPageState extends State<BuyActionPage> {
     var mintingPercent;
     var mintingValue;
     print("minivallll");
-    print(double.parse(sharedPreferences.getString('minting').toString()));
+    // print(double.parse(sharedPreferences.getString('minting') ?? ""));
     setState(() {
       mintingPercent = sharedPreferences.getString('minting');
-      mintingValue = (double.parse(mintingPercent) / 100);
+      mintingValue = (double.parse(mintingPercent ?? "0") / 100);
       // *
       //     double.parse(goldPrice.toStringAsFixed(3));
     });
@@ -150,7 +150,7 @@ class _BuyActionPageState extends State<BuyActionPage> {
     var volatilityValue;
     setState(() {
       volatilityPercent = sharedPreferences.getString('volatility');
-      volatilityValue = (double.parse(volatilityPercent) / 100);
+      volatilityValue = (double.parse(volatilityPercent ?? "0") / 100);
       //  *
       //     double.parse(goldPrice.toStringAsFixed(3));
     });
@@ -232,7 +232,6 @@ class _BuyActionPageState extends State<BuyActionPage> {
       //   // finalBuyPrice = (double.parse(buyPrice)).toStringAsFixed(3);
       //   // print(finalBuyPrice);
       // }
-
     }
     print(markupPercentage);
     var feesMarkup =

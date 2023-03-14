@@ -25,16 +25,22 @@ class TwlNormalTextField extends StatefulWidget {
   String? intialValue;
   final prefixText;
   final contentPadding;
+  final expand;
   final textCapitalization;
+  final isDense;
+  final autofocus;
   TwlNormalTextField(
       {required this.controller,
       this.textCapitalization,
       this.textInputType,
       this.prefixStyle,
       this.validator,
+      this.expand,
+      this.autofocus,
       this.maxlength,
       this.maxLines,
       this.hintText,
+      this.isDense,
       this.inputForamtters,
       this.textAlign,
       this.style,
@@ -64,9 +70,10 @@ class _TwlNormalTextFieldState extends State<TwlNormalTextField> {
       controller: widget.controller,
       keyboardType: widget.textInputType,
       validator: widget.validator,
+      autofocus: widget.autofocus != null ? widget.autofocus : false,
       maxLines: widget.maxLines,
       onChanged: widget.onchnage,
-
+      expands: widget.expand != null ? widget.expand : false,
       inputFormatters: widget.inputForamtters,
       style: widget.style == null
           ? TextStyle(fontSize: 15
@@ -83,23 +90,21 @@ class _TwlNormalTextFieldState extends State<TwlNormalTextField> {
             //  isTab(context) ? 10.sp : 14.sp
             ),
         // hintText: 'Enter Your Mobile Number',
-        fillColor: tPrimaryTextformfield,
+        fillColor: Colors.white,
         prefixText: widget.prefixText,
         prefixStyle: widget.prefixStyle,
         contentPadding: widget.contentPadding != null
             ? widget.contentPadding
-            : EdgeInsets.symmetric(horizontal: 15, vertical: 2),
+            : EdgeInsets.symmetric(horizontal: 15, vertical: 1),
         filled: true,
+        isDense: widget.isDense != null ? widget.isDense : false,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(width: 1, color: tWhite),
+          borderSide: BorderSide(width: 1, color: Colors.black),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            width: 0,
-            style: BorderStyle.none,
-          ),
+          borderSide: BorderSide(width: 0, color: Colors.black),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),

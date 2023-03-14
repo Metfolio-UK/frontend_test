@@ -350,7 +350,8 @@ class _BottomNavigationState extends State<BottomNavigation>
                   // ChangedPasscode(),
                   // NotificationPage(),
 
-                  Activity(headHide: false),
+                  // Activity(headHide: false),
+
                   //Extra2()
                 ],
               ),
@@ -397,13 +398,13 @@ class _BottomNavigationState extends State<BottomNavigation>
               ),
               label: 'Actions',
             ),
-            _bottomNavigationBarItem(
-              icon: Image.asset(
-                BottomNavigationImages.ACTIVITY,
-                height: 3.5.h,
-              ),
-              label: 'Activity',
-            ),
+            // _bottomNavigationBarItem(
+            //   icon: Image.asset(
+            //     BottomNavigationImages.ACTIVITY,
+            //     height: 3.5.h,
+            //   ),
+            //   label: 'Activity',
+            // ),
             /*  _bottomNavigationBarItem(
               icon: Image.asset(
                 BottomNavigationImages.HOME,

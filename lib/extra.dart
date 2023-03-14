@@ -5,6 +5,7 @@ import 'package:base_project_flutter/main.dart';
 import 'package:base_project_flutter/responsive.dart';
 import 'package:base_project_flutter/views/bottomNavigation.dart/bottomNavigation.dart';
 import 'package:base_project_flutter/views/listAddress/confirmAddress.dart';
+import 'package:base_project_flutter/views/notificationPage/notification.dart';
 import 'package:base_project_flutter/views/veriffPage/veriffPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,9 @@ import 'globalWidgets/button.dart';
 import 'views/loginPassCodePages/createYourPasscode.dart';
 
 class Extra extends StatefulWidget {
+  const Extra({Key? key, required this.throughProfile}) : super(key: key);
+  final bool throughProfile;
+
   @override
   State<Extra> createState() => Extraq();
 }
@@ -272,45 +276,203 @@ class Extraq extends State<Extra> {
                 onTap: () {
                   Twl.navigateBack(context);
                 },
-                child: Padding(
-                  padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: selectedvalue == 1 ? btnColor : tWhite,
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Image.asset(
-                      Images.NAVBACK,
-                      scale: 4,
-                    ),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: selectedvalue == 1 ? btnColor : tWhite,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Image.asset(
+                    Images.NAVBACK,
+                    color: Color(0xff57B0BA),
+                    scale: 4,
                   ),
                 ),
               ),
+              titleSpacing: 0,
+              centerTitle: false,
+              title: Text("Verification",
+                  style: TextStyle(
+                      color: Color(0xff57B0BA),
+                      fontFamily: 'Signika',
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w700)),
             ),
             body: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-              Text("Let's get you verified!",
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 0, bottom: 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Color(0xff57B0BA))),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 6,
+                              color: Color(0xffE5B02C),
+                            ),
+                            Expanded(
+                              child: Container(
+                                height: 6,
+                                color: Color(0xffE5B02C),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                height: 6,
+                                color: Color(0xffE5B02C),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                height: 6,
+                                color: Color(0xffE5B02C),
+                              ),
+                            ),
+                            Container(
+                              width: 40,
+                              height: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Image.asset(
+                      'images/finish.png',
+                      width: 20,
+                      height: 20,
+                    )
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 0, bottom: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("SMS",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Barlow',
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w700)),
+                    Text("Personal Details",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Barlow',
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w700)),
+                    Text("Create Passcode",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Barlow',
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w700)),
+                    Text("Verification",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Barlow',
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w700)),
+                    Container()
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 12.sp),
+                height: 1,
+                color: Colors.black,
+              ),
+              SizedBox(height: 24),
+              Text("Verify Your Identity",
                   style: TextStyle(
                       color: tSecondaryColor,
-                      fontFamily: 'Signika',
-                      fontSize: isTab(context) ? 22.sp : 25.sp,
+                      fontFamily: 'Barlow',
+                      fontSize: 25.sp,
                       fontWeight: FontWeight.w700)),
-              SizedBox(height: 2.h),
-              Text(
-                  "Or continue without verification until you\nhave invested £5000 into gold.",
+              SizedBox(height: 4),
+              Text("Stay unverified for your first £10,000",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: tSecondaryColor,
-                      fontSize: isTab(context) ? 12.sp : 15.sp,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.w400)),
-              SizedBox(height: 7.h),
+              SizedBox(height: 3.h),
+              Center(
+                  child: Container(
+                      padding: EdgeInsets.all(8),
+                      child: Image.asset('images/verify.png',
+                          height: 163, width: 162))),
+              Spacer(),
+              if (!widget.throughProfile)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        verificationStatus = 3;
+                      });
+                      Twl.navigateTo(context, NotificationPage());
+                    },
+                    child: Center(
+                      child: Text(
+                        "Skip to App",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ),
+              if (!widget.throughProfile) SizedBox(height: 8),
+              if (!widget.throughProfile)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      color: Colors.black,
+                      height: 2,
+                      width: 100,
+                    ),
+                    Text("  OR  ",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Signika',
+                            fontSize: 20)),
+                    Container(
+                      color: Colors.black,
+                      height: 2,
+                      width: 100,
+                    ),
+                  ],
+                ),
+              if (!widget.throughProfile) SizedBox(height: 8),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30.w),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Align(
                   alignment: Alignment.center,
                   child: Button(
                     borderSide: BorderSide.none,
-                    color: tPrimaryColor,
+                    color: Color(0xff2AB2BC),
                     textcolor: tWhite,
-                    bottonText: 'Verify my identity',
+                    bottonText: 'Continue',
+                    textStyle: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontFamily: 'Barlow',
+                        fontSize: 25),
                     onTap: (startLoading, stopLoading, btnState) async {
                       var firstName;
                       var lastName;
@@ -344,39 +506,7 @@ class Extraq extends State<Extra> {
                   ),
                 ),
               ),
-              SizedBox(height: 5),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    verificationStatus = 3;
-                  });
-                  Twl.navigateTo(
-                    context,
-                    isPasscodeExist
-                        // ? VeriffStatusCheck()
-                        ? BottomNavigation()
-                        : CreateYourPassCode(
-                            loginFlow: true,
-                          ),
-                  );
-                },
-                child: Center(
-                  child: Text(
-                    "Do this later",
-                    style: TextStyle(
-                        color: tSecondaryColor,
-                        fontSize: 13,
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.w400),
-                  ),
-                ),
-              ),
-              SizedBox(height: 3.h),
-              Center(
-                  child: Container(
-                      padding: EdgeInsets.all(8),
-                      child: Image.asset('images/V1.png',
-                          height: 330, width: 295))),
+              SizedBox(height: 24),
             ]),
           ))
     ]);

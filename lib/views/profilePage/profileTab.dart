@@ -51,6 +51,8 @@ class _ProfileTabState extends State<ProfileTab> {
     authCode = sharedPreferences.getString('authCode');
     check = await UserAPI().checkApi(sharedPreferences.getString('authCode')!);
     print(check);
+    print("verificationStatus " + verificationStatus.toString());
+
     if (check != null && check['status'] == 'OK') {
       setState(() {
         details = check['detail'];
@@ -268,7 +270,12 @@ class _ProfileTabState extends State<ProfileTab> {
               height: isTab(context) ? 50 : 35,
               // highlightColor: btnColor,
               onTap: (startLoading, stopLoading, btnState) {
-                if (verificationStatus == 3) Twl.navigateTo(context, Extra());
+                if (verificationStatus == 3)
+                  Twl.navigateTo(
+                      context,
+                      Extra(
+                        throughProfile: true,
+                      ));
               },
               child: Container(
                 // height: isTab(context) ? 50 : 35,

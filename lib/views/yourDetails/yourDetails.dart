@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../constants/constants.dart';
@@ -140,11 +139,11 @@ class _YourDetailsState extends State<YourDetails> {
                         ? (widget.details['delivery_address']
                                 ['address_line_one'] +
                             '\n' +
-                            widget.details['delivery_address']['post_code'] +
-                            '\n' +
-                            widget.details['delivery_address']['city'] +
-                            '\n' +
-                            widget.details['delivery_address']['country'])
+                            widget.details['delivery_address']['post_code'])
+                        // '\n' +
+                        // widget.details['delivery_address']['city'] +
+                        // '\n' +
+                        // widget.details['delivery_address']['country'])
                         : '',
                     context,
                     3,

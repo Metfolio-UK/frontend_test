@@ -139,7 +139,11 @@ class _SearchAddressState extends State<ConfirmAddress> {
           //     context, 'error', veriffiRes['error']);
         }*/
 
-        Twl.navigateTo(context, Extra());
+        Twl.navigateTo(
+            context,
+            Extra(
+              throughProfile: false,
+            ));
       } else {
         startLoader(false);
 

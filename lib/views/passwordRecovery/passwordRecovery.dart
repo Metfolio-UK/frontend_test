@@ -236,7 +236,13 @@ class _PasswordRecoveryState extends State<PasswordRecovery> {
 
                     // ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   } else {
-                    Twl.navigateTo(context, DigitCode(index: 1));
+                    Twl.navigateTo(
+                        context,
+                        DigitCode(
+                          isSignUp: false,
+                          index: 1,
+                          number: _userLatNameController.text,
+                        ));
                   }
                 },
                 child: Center(

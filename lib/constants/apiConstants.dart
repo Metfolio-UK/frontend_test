@@ -1,4 +1,4 @@
-bool testEnvironment = false;
+bool testEnvironment = true;
 String apiBaseUrl = testEnvironment
     ? 'https://test.metfolio.com/api/'
     : 'https://app.metfolio.com/api/';

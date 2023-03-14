@@ -22,9 +22,16 @@ import '../../globalWidgets/button.dart';
 import '../../main.dart';
 
 class DigitCode extends StatefulWidget {
-  const DigitCode({required this.index, Key? key}) : super(key: key);
+  const DigitCode(
+      {required this.index,
+      required this.number,
+      required this.isSignUp,
+      Key? key})
+      : super(key: key);
 
   final int? index;
+  final String? number;
+  final bool isSignUp;
 
   @override
   State<DigitCode> createState() => _DigitCodeState();
@@ -206,9 +213,9 @@ class _DigitCodeState extends State<DigitCode> {
             var check = await UserAPI().checkApi(
               res['auth_code'],
             );
-            print('checkkkk');
+            print('checkkkk ' + check.toString());
 
-            print(check);
+            // print();
 
             if (check != null && check['status'] == 'OK') {
               if (check['detail']['stripe_cus_id'] != null) {
@@ -251,16 +258,20 @@ class _DigitCodeState extends State<DigitCode> {
               setState(() {
                 isLoading = true;
               });
-              if (
-                  // check['detail']['email'] != null &&
-                  // check['detail']['first_name'] != null &&
-                  // check['detail']['date_of_birth'] != null &&
-                  check['detail']['veriff_status'] == true ||
-                      check['detail']['veriff_status'] == 'true') {
+              if (check['detail']['email'] != null &&
+                      check['detail']['first_name'] != null &&
+                      check['detail']['date_of_birth'] != null &&
+                      check['detail']['delivery_address']['post_code'] !=
+                          null &&
+                      check['detail']['delivery_address']['address_line_one'] !=
+                          null
+                  // check['detail']['veriff_status'] == true ||
+                  //     check['detail']['veriff_status'] == 'true'
+                  ) {
                 setState(() {
                   isLoading = true;
                 });
-                //  startLoader(false);
+                startLoader(false);
                 // stopLoading();
                 FirebaseFirestore.instance
                     .collection('users')
@@ -321,6 +332,11 @@ class _DigitCodeState extends State<DigitCode> {
                         dateOfBirth: check['detail']['date_of_birth'],
                       );
                       startLoader(false);
+                      Twl.navigateTo(
+                          context,
+                          PersonalDetails(
+                            isLoadingFlow: true,
+                          ));
                       checkverification(
                           context, check['detail']['verification_status']);
                       // Twl.navigateTo(context,
@@ -440,242 +456,420 @@ class _DigitCodeState extends State<DigitCode> {
             child: Scaffold(
               backgroundColor: tWhite,
               appBar: AppBar(
-                elevation: 0,
-                backgroundColor: tWhite,
-                leading: GestureDetector(
-                  // change the back button shadow
-                  onTap: () {
-                    Twl.navigateBack(context);
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
+                  elevation: 0,
+                  backgroundColor: tWhite,
+                  leading: GestureDetector(
+                    // change the back button shadow
+                    onTap: () {
+                      Twl.navigateBack(context);
+                    },
                     child: Container(
                       decoration: BoxDecoration(
                           color: selectedvalue == 1 ? btnColor : tWhite,
                           borderRadius: BorderRadius.circular(10)),
                       child: Image.asset(
                         Images.NAVBACK,
+                        color: Color(0xff57B0BA),
                         scale: 4,
                       ),
                     ),
                   ),
-                ),
-              ),
+                  titleSpacing: 0,
+                  centerTitle: false,
+                  title: Text("SMS",
+                      style: TextStyle(
+                          color: Color(0xff57B0BA),
+                          fontFamily: 'Signika',
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w700))),
               body: Form(
                 key: _formKey,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 30, right: 25, top: 0, bottom: 10),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 0,
-                              ),
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("6-digit code",
-                                        style: TextStyle(
-                                            fontFamily: 'Signika',
-                                            color: tPrimaryColor,
-                                            fontSize:
-                                                isTab(context) ? 18.sp : 21.sp,
-                                            fontWeight: FontWeight.w700)),
-                                    SizedBox(height: 25),
-                                    Text(
-                                        "Please enter the one time password we sent to your number",
-                                        style: TextStyle(
-                                            color: tSecondaryColor,
-                                            fontSize:
-                                                isTab(context) ? 9.sp : 12.sp,
-                                            fontWeight: FontWeight.w400)),
-                                    SizedBox(height: 40),
-                                    PinCodeTextField(
-                                      //backgroundColor: Colors.white,
-                                      appContext: context,
-                                      pastedTextStyle: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      length: 6,
-                                      obscureText: false,
-                                      obscuringCharacter: '*',
-                                      // blinkWhenObscuring: true,
-                                      animationType: AnimationType.fade,
-
-                                      // validator: (v) {
-                                      //   if (v!.length < 6 || v.length == 0) {
-                                      //     return "";
-                                      //   } else {
-                                      //     return null;
-                                      //   }
-                                      // },
-                                      pinTheme: PinTheme(
-                                        shape: PinCodeFieldShape.box,
-                                        activeColor: hasError
-                                            ? Colors.red
-                                            : tlightGrayblue,
-                                        selectedColor: hasError
-                                            ? Colors.red
-                                            : tlightGrayblue,
-                                        selectedFillColor: tlightGrayblue,
-                                        inactiveFillColor: tlightGrayblue,
-                                        inactiveColor:
-                                            //  Colors.red,
-                                            hasError
-                                                ? Colors.red
-                                                : tlightGrayblue,
-                                        borderRadius: BorderRadius.circular(15),
-                                        borderWidth: 0,
-                                        fieldHeight:
-                                            isTab(context) ? 10.w : 13.w,
-                                        fieldWidth:
-                                            isTab(context) ? 10.w : 12.w,
-                                        activeFillColor: tlightGrayblue,
-                                      ),
-                                      cursorColor: tlightGrayblue,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                      ],
-                                      animationDuration:
-                                          Duration(milliseconds: 300),
-                                      enableActiveFill: true,
-                                      //errorAnimationController: errorController,
-                                      controller: _otpCodeController,
-                                      keyboardType: TextInputType.number,
-                                      // boxShadows: [tBoxShadow],
-                                      onCompleted: (v) {
-                                        print("Completed");
-                                      },
-                                      onTap: () {
-                                        print("Pressed");
-                                      },
-                                      onChanged: (value) {
-                                        print(value);
-                                        // setState(() {
-                                        //   currentText = value;
-                                        // });
-                                      },
-                                      beforeTextPaste: (text) {
-                                        print("Allowing to paste $text");
-
-                                        return true;
-                                      },
-                                    ),
-                                    SizedBox(height: 15),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                          // color: tSecondaryColor,
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(20))),
-                                      child: ArgonTimerButton(
-                                          initialTimer: 30,
-                                          elevation: 0,
-                                          height: isTab(context) ? 50 : 30,
-                                          width:
-                                              isTab(context) ? (100.w) : 100.w,
-                                          borderRadius:
-                                              isTab(context) ? 90 : 30,
-                                          color: tWhite,
-                                          minWidth: 100.w,
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  'Re-send verification code',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                      color: tSecondaryColor,
-                                                      fontSize: isTab(context)
-                                                          ? 9.sp
-                                                          : 12.sp,
-                                                      fontWeight:
-                                                          FontWeight.w400),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          loader: (timeLeft) {
-                                            return Text(
-                                              "Re-send verification code $timeLeft",
-                                              style: TextStyle(
-                                                  color: tSecondaryColor,
-                                                  fontSize: isTab(context)
-                                                      ? 9.sp
-                                                      : 12.sp,
-                                                  fontWeight: FontWeight.w400),
-                                            );
-                                          },
-                                          onTap: (startTimer, btnState) async {
-                                            SharedPreferences
-                                                sharedPreferences =
-                                                await SharedPreferences
-                                                    .getInstance();
-                                            var userName;
-                                            setState(() {
-                                              userName = sharedPreferences
-                                                  .getString("userName")
-                                                  .toString();
-                                            });
-                                            var res = await UserAPI.sendOtp(
-                                                context, userName);
-                                            print(res);
-                                            print(userName);
-                                            if (res != null &&
-                                                res['status'] == 'OK') {
-                                              // if (type == 1)
-                                              Twl.navigateTo(
-                                                  context,
-                                                  DigitCode(
-                                                    index: null,
-                                                  ));
-                                            } else {
-                                              // Twl.createAlert(context, 'error',
-                                              //     res['error']);
-                                            }
-                                          }),
-                                    ),
-                                    // Center(
-                                    //   child: Text(
-                                    //     "Re-send verification code",
-                                    //     style: TextStyle(
-                                    //         color: tSecondaryColor,
-                                    //         fontSize: isTab(context) ? 14.sp : 16.sp,
-                                    //         fontWeight: FontWeight.w400),
-                                    //     textAlign: TextAlign.center,
-                                    //   ),
-                                    // )
-                                  ]),
-                            ),
-                          ),
-                        ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!widget.isSignUp)
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 15.w),
-                          child: Container(
-                            height: 40,
-                            width: 230,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                elevation: 0,
-                                primary: tPrimaryColor,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)),
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, top: 0, bottom: 0),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 2),
+                                decoration: BoxDecoration(
+                                    color: Color(0xff57B0BA),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text("Log In",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'Barlow',
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700)),
                               ),
-                              child: Text('Continue',
-                                  style: TextStyle(
-                                    color: tBlue,
-                                  )),
-                              onPressed: isLoading == false ? null : x,
-                            ),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: tPrimaryColor,
+                                size: 18,
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 2),
+                                decoration: BoxDecoration(
+                                    color: Color(0xff57B0BA),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text("SMS",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'Barlow',
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: tPrimaryColor,
+                                size: 18,
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 2),
+                                decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text("Passcode",
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontFamily: 'Barlow',
+                                        fontSize: 9.sp,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 20)
-                      ]),
-                ),
+                      if (!widget.isSignUp)
+                        Container(
+                          margin: EdgeInsets.only(top: 10.sp),
+                          height: 1,
+                          color: Colors.black,
+                        ),
+                      if (widget.isSignUp)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, top: 0, bottom: 0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border:
+                                          Border.all(color: Color(0xff57B0BA))),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 6,
+                                        color: Color(0xffE5B02C),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                              border: Border(
+                                                  right: BorderSide(
+                                                      color:
+                                                          Color(0xff57B0BA)))),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                              border: Border(
+                                                  right: BorderSide(
+                                                      color:
+                                                          Color(0xff57B0BA)))),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                              border: Border(
+                                                  right: BorderSide(
+                                                      color:
+                                                          Color(0xff57B0BA)))),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 40,
+                                        height: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Image.asset(
+                                'images/finish.png',
+                                width: 20,
+                                height: 20,
+                              )
+                            ],
+                          ),
+                        ),
+                      if (widget.isSignUp)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, top: 0, bottom: 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("SMS",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'Barlow',
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700)),
+                              Text("Personal Details",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'Barlow',
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700)),
+                              Text("Create Passcode",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'Barlow',
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700)),
+                              Text("Verification",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontFamily: 'Barlow',
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w700)),
+                              Container()
+                            ],
+                          ),
+                        ),
+                      if (widget.isSignUp)
+                        Container(
+                          margin: EdgeInsets.only(top: 12.sp),
+                          height: 1,
+                          color: Colors.black,
+                        ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16, right: 16, top: 24, bottom: 20),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Verify your mobile number",
+                                      style: TextStyle(
+                                          fontFamily: 'Barlow',
+                                          color: Colors.black,
+                                          fontSize: isTab(context)
+                                              ? 18.sp
+                                              : widget.isSignUp
+                                                  ? 15.sp
+                                                  : 18.sp,
+                                          fontWeight: FontWeight.w700)),
+                                  SizedBox(height: 4),
+                                  Text(
+                                      "Enter the 6 digit code we sent to ${widget.number}",
+                                      style: TextStyle(
+                                          color: tSecondaryColor,
+                                          fontSize:
+                                              isTab(context) ? 9.sp : 12.sp,
+                                          fontWeight: FontWeight.w400)),
+                                  SizedBox(height: 12),
+                                  PinCodeTextField(
+                                    // backgroundColor: Colors.white,
+                                    appContext: context,
+                                    pastedTextStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    length: 6,
+                                    obscureText: false,
+                                    obscuringCharacter: '*',
+                                    // blinkWhenObscuring: true,
+                                    animationType: AnimationType.fade,
+
+                                    // validator: (v) {
+                                    //   if (v!.length < 6 || v.length == 0) {
+                                    //     return "";
+                                    //   } else {
+                                    //     return null;
+                                    //   }
+                                    // },
+                                    pinTheme: PinTheme(
+                                      shape: PinCodeFieldShape.box,
+                                      activeColor:
+                                          hasError ? Colors.red : Colors.black,
+                                      selectedColor:
+                                          hasError ? Colors.red : Colors.black,
+                                      // selectedFillColor: Colors.black,
+                                      // inactiveFillColor: Colors.white,
+                                      inactiveColor:
+                                          //  Colors.red,
+                                          hasError ? Colors.red : Colors.black,
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderWidth: hasError ? 2 : 1,
+                                      errorBorderColor: Colors.red,
+                                      fieldHeight: isTab(context) ? 10.w : 13.w,
+                                      fieldWidth: isTab(context) ? 10.w : 12.w,
+                                    ),
+
+                                    cursorColor: Colors.black,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    animationDuration:
+                                        Duration(milliseconds: 300),
+                                    errorAnimationDuration: 1000,
+                                    // enableActiveFill: true,
+                                    //errorAnimationController: errorController,
+                                    controller: _otpCodeController,
+                                    keyboardType: TextInputType.number,
+                                    // boxShadows: [tBoxShadow],
+                                    onCompleted: (v) {
+                                      print("Completed");
+                                    },
+                                    onTap: () {
+                                      print("Pressed");
+                                    },
+                                    onChanged: (value) {
+                                      print(value);
+                                      // setState(() {
+                                      //   currentText = value;
+                                      // });
+                                    },
+                                    beforeTextPaste: (text) {
+                                      print("Allowing to paste $text");
+
+                                      return true;
+                                    },
+                                  ),
+                                  SizedBox(height: 12),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        // color: tSecondaryColor,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20))),
+                                    child: ArgonTimerButton(
+                                        initialTimer: 30,
+                                        elevation: 0,
+                                        height: isTab(context) ? 50 : 30,
+                                        width: isTab(context) ? (100.w) : 100.w,
+                                        borderRadius: isTab(context) ? 90 : 30,
+                                        color: tWhite,
+                                        minWidth: 100.w,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'Re-send verification code',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    color: tSecondaryColor,
+                                                    fontSize: isTab(context)
+                                                        ? 9.sp
+                                                        : 12.sp,
+                                                    fontWeight:
+                                                        FontWeight.w400),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        loader: (timeLeft) {
+                                          return Text(
+                                            "Re-send verification code $timeLeft",
+                                            style: TextStyle(
+                                                color: tSecondaryColor,
+                                                fontSize: isTab(context)
+                                                    ? 9.sp
+                                                    : 12.sp,
+                                                fontWeight: FontWeight.w400),
+                                          );
+                                        },
+                                        onTap: (startTimer, btnState) async {
+                                          SharedPreferences sharedPreferences =
+                                              await SharedPreferences
+                                                  .getInstance();
+                                          var userName;
+                                          setState(() {
+                                            userName = sharedPreferences
+                                                .getString("userName")
+                                                .toString();
+                                          });
+                                          var res = await UserAPI.sendOtp(
+                                              context, userName);
+                                          print(res);
+                                          print(userName);
+                                          if (res != null &&
+                                              res['status'] == 'OK') {
+                                            // if (type == 1)
+                                            Twl.navigateTo(
+                                                context,
+                                                DigitCode(
+                                                  isSignUp: true,
+                                                  index: null,
+                                                  number: widget.number,
+                                                ));
+                                          } else {
+                                            // Twl.createAlert(context, 'error',
+                                            //     res['error']);
+                                          }
+                                        }),
+                                  ),
+                                  // Center(
+                                  //   child: Text(
+                                  //     "Re-send verification code",
+                                  //     style: TextStyle(
+                                  //         color: tSecondaryColor,
+                                  //         fontSize: isTab(context) ? 14.sp : 16.sp,
+                                  //         fontWeight: FontWeight.w400),
+                                  //     textAlign: TextAlign.center,
+                                  //   ),
+                                  // )
+                                ]),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 40,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    primary: Color(0xff2AB2BC),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                  ),
+                                  child: Text('Continue',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20.sp,
+                                          fontFamily: 'Barlow',
+                                          fontWeight: FontWeight.w700)),
+                                  onPressed: isLoading == false ? null : x,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20)
+                    ]),
               ),
             ),
           ),

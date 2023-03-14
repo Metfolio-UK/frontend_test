@@ -267,10 +267,10 @@ class _DashBoardPageState extends State<DashBoardPage>
     var mintingPercent;
     var mintingValue;
     print("minivallll");
-    print(double.parse(sharedPreferences.getString('minting').toString()));
+    // print(double.parse(sharedPreferences.getString('minting').toString()));
     setState(() {
       mintingPercent = sharedPreferences.getString('minting');
-      mintingValue = (double.parse(mintingPercent) / 100);
+      mintingValue = (double.parse(mintingPercent ?? "") / 100);
       // *
       //     double.parse(goldPrice.toStringAsFixed(3));
     });
@@ -3645,29 +3645,24 @@ class _DashBoardPageState extends State<DashBoardPage>
                                                                           20)),
                                                     ),
                                                     onPressed: () async {
-                                                      // if (verifStatus) {
-
+                                                      if (myGoalDetails[
+                                                              'status'] ==
+                                                          'NOK') {
+                                                        Twl.navigateTo(context,
+                                                            GoalAmount());
+                                                      } else if (myGoalDetails[
+                                                              'status'] ==
+                                                          'OK') {
+                                                        Twl.navigateTo(
+                                                            context, Sorry());
+                                                      }
                                                       // } else {
-                                                      //   Twl.navigateTo(
-                                                      //       context, VeriffiPage());
+                                                      //   Twl.navigateTo(context, VeriffiPage());
                                                       // }
-                                                      // Twl.navigateTo(context, NameYourGoal());
-
-                                                      /*   Twl.navigateTo(context,
-                                                          GoalAmount());*/
-
-                                                      show();
 
                                                       Segment.track(
                                                         eventName:
-                                                            'start_a_goal_button',
-                                                        properties: {
-                                                          "tapped": true
-                                                        },
-                                                      );
-
-                                                      mixpanel.track(
-                                                        'start_a_goal_button',
+                                                            'new_goal_button',
                                                         properties: {
                                                           "tapped": true
                                                         },
@@ -3676,9 +3671,15 @@ class _DashBoardPageState extends State<DashBoardPage>
                                                       await FirebaseAnalytics
                                                           .instance
                                                           .logEvent(
-                                                        name:
-                                                            "start_a_goal_button",
+                                                        name: "new_goal_button",
                                                         parameters: {
+                                                          "tapped": true
+                                                        },
+                                                      );
+
+                                                      mixpanel.track(
+                                                        "new_goal_button",
+                                                        properties: {
                                                           "tapped": true
                                                         },
                                                       );
@@ -4280,6 +4281,8 @@ class _DashBoardPageState extends State<DashBoardPage>
                     )
                   ],
                 )
+              else
+                Container()
             ])
             // body: Container(
             //   color: Colors.white,

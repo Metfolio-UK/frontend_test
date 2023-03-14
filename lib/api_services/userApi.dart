@@ -45,7 +45,6 @@ class UserAPI {
         content: Text('Check Internet'),
       ));
       // Twl.createAlert(context,'dfd','dfdfd');
-
     }
   }
 
@@ -93,7 +92,6 @@ class UserAPI {
       //   content: Text('Check Internet'),
       // ));
       // Twl.createAlert(context,'dfd','dfdfd');
-
     }
   }
 
@@ -119,7 +117,7 @@ class UserAPI {
     late String authCode;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
 
-    authCode = sharedPreferences.getString('authCode')!;
+    authCode = sharedPreferences.getString('authCode') ?? "";
     if (authCode != null) {
       authCode = authCode;
     } else {
@@ -153,7 +151,6 @@ class UserAPI {
         content: Text('Check Internet'),
       ));
       // Twl.createAlert(context,'dfd','dfdfd');
-
     }
   }
 
